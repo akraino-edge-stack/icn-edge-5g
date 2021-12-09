@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: f5gc-ausf-config
+data:
+  ausfcfg.conf: |
+    info:
+      version: 1.0.0
+      description: AUSF initial local configuration
+    
+    configuration:
+      sbi:
+        scheme: {{ .Values.configuration.sbi.scheme }}
+        registerIPv4: {{ .Values.configuration.sbi.registerIPv4 }}    # Can also be a kubernetes service IP or domain name.
+        bindingIPv4: 0.0.0.0      # Can also be an ENV.
+        port: {{ .Values.service.port }}
+      serviceNameList:
+        - nausf-auth
+      nrfUri: {{ .Values.configuration.nrfUri }}
+      plmnSupportList:
+        - mcc: 208
+          mnc: 93
+        - mcc: 123
+          mnc: 45
+      groupId: ausfGroup001  
+
+  free5GC.conf: |
+    db_uri: {{ .Values.mongodb.url }}/free5GC
+    #all logging levels
+    #panic
+    #fatal
+    #error
+    #warn
+    #info
+    #debug
+    #trace
+    logger:
+    # network function
+      AMF:
+        debugLevel: info
+        ReportCaller: true
+      SMF:
+        debugLevel: info
+        ReportCaller: true
+      UDR:
+        debugLevel: info
+        ReportCaller: true
+      UDM:
+        debugLevel: info
+        ReportCaller: true
+      NRF:
+        debugLevel: info
+        ReportCaller: true
+      PCF:
+        debugLevel: info
+        ReportCaller: true
+      AUSF:
+        debugLevel: info
+        ReportCaller: true
+      N3IWF:
+        debugLevel: info
+        ReportCaller: true
+    # library
+      NAS:
+        debugLevel: info
+        ReportCaller: true
+      FSM:
+        debugLevel: info
+        ReportCaller: true
+      NGAP:
+        debugLevel: info
+        ReportCaller: true
+      NamfComm:
+        debugLevel: info
+        ReportCaller: true
+      NamfEventExposure:
+        debugLevel: info
+        ReportCaller: true
+      NsmfPDUSession:
+        debugLevel: info
+        ReportCaller: true
+      NudrDataRepository:
+        debugLevel: info
+        ReportCaller: true
+      OpenApi:
+        debugLevel: debug
+        ReportCaller: true
+      Aper:
+        debugLevel: info
+        ReportCaller: true
+      CommonConsumerTest:
+        debugLevel: info
+        ReportCaller: true
+    # webui
+      WEBUI:
+        debugLevel: info
+        ReportCaller: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+   name: f5gc-ausf-tls-secret
+type: Opaque
+data:
+   {{ tpl (.Files.Glob "resources/config/cert/ausf.pem").AsSecrets . | indent 2 }}
+   {{ tpl (.Files.Glob "resources/config/cert/ausf.key").AsSecrets . | indent 2 }}
+

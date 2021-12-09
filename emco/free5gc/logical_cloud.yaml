@@ -1,0 +1,113 @@
+
+{{- range $index, $cloud := .lclouds }}
+---
+#create admin logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/logical-clouds
+metadata:
+  name: {{ $cloud.name }}
+spec:
+  namespace: {{ $cloud.namespace }}
+  user:
+    userName: {{ $cloud.user }}
+    type: certificate
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/logical-clouds/{{ $cloud.name }}/user-permissions
+metadata:
+  name: {{ $cloud.name }}-permission-1
+spec:
+  namespace: {{ $cloud.namespace }}
+  apiGroups:
+  - ""
+  - "apps"
+  - "k8splugin.io"
+  resources:
+  - secrets
+  - pods
+  - configmaps
+  - services
+  - deployments
+  - resourcebundlestates
+  - serviceaccounts
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+
+---
+#add privileged cluster-wide user permission
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/logical-clouds/{{ $cloud.name }}/user-permissions
+metadata:
+    name: {{ $cloud.name }}-permission-2
+spec:
+    namespace: ""
+    apiGroups:
+    - "*"
+    resources:
+    - "*"
+    verbs:
+    - "*"
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/logical-clouds/{{ $cloud.name }}/cluster-quotas
+metadata:
+  name: {{ $cloud.name }}-quota-1
+spec:
+  requests.storage: 200Gi
+  requests.ephemeral-storage: '200'
+  limits.ephemeral-storage: '200'
+  persistentvolumeclaims: '200'
+  pods: '200'
+  configmaps: '200'
+  replicationcontrollers: '200'
+  resourcequotas: '200'
+  services: '200'
+  services.loadbalancers: '200'
+  services.nodeports: '200'
+  secrets: '200'
+  count/replicationcontrollers: '200'
+  count/deployments.apps: '200'
+  count/replicasets.apps: '200'
+  count/statefulsets.apps: '200'
+  count/jobs.batch: '200'
+  count/cronjobs.batch: '200'
+  count/deployments.extensions: '200'
+
+
+{{- range $index, $cref := $cloud.clusterRef }}
+---
+#add cluster reference to logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/logical-clouds/{{ $cloud.name }}/cluster-references
+metadata:
+  name: {{ $cref.name }}
+spec:
+  clusterProvider: {{ $cref.provider }}
+  cluster: {{ $cref.cluster }}
+  loadbalancerIp: "0.0.0.0"
+
+---
+#Add label cluster
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{ $cref.provider }}/clusters/{{ $cref.cluster }}/labels
+clusterLabel: {{ $cref.label }}
+
+{{- end }}
+---
+
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/logical-clouds/{{ $cloud.name }}/instantiate
+
+{{- end }}

@@ -1,0 +1,177 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: f5gc-smf-config
+data:
+  smfcfg.conf: |
+    info:
+      version: 1.0.0
+      description: AMF initial local configuration
+    
+    configuration:
+      smfName: SMF
+      sbi:
+        scheme: {{ .Values.configuration.sbi.scheme }}
+        registerIPv4: {{ .Values.configuration.sbi.registerIPv4 }}
+        bindingIPv4: 0.0.0.0 
+        port: {{ .Values.service.port }}
+        tls:
+          key: free5gc/support/TLS/smf.key
+          pem: free5gc/support/TLS/smf.pem
+      serviceNameList:
+        - nsmf-pdusession
+        - nsmf-event-exposure
+        - nsmf-oam
+      snssaiInfos:
+        - sNssai:
+            sst: {{ .Values.sNssaiInfos.sNssai.sst }}
+            sd: {{ .Values.sNssaiInfos.sNssai.sd }}
+          dnnInfos:
+            - dnn: {{ .Values.sNssaiInfos.sNssai.dnnInfos.dnn }}
+              dns:
+                ipv4: 8.8.8.8
+                ipv6: 2001:4860:4860::8888
+              ueSubnet: {{ .Values.sNssaiInfos.sNssai.dnnInfos.ueSubnet }}
+        - sNssai:
+            sst: {{ .Values.sNssaiInfos.sNssai.sst }}
+            sd: 112233
+          dnnInfos:
+            - dnn: internet
+              dns:
+                ipv4: 8.8.8.8
+                ipv6: 2001:4860:4860::8888
+              ueSubnet: {{ .Values.sNssaiInfos.sNssai.dnnInfos.ueSubnet }}
+      pfcp:
+{{ .Values.pfcp | toYaml | indent 8 }}
+      userplane_information:
+{{ .Values.userplane_information | toYaml | indent 8 }}
+      nrfUri: {{ .Values.configuration.nrfUri }}
+      ulcl: false
+
+  uerouting.yaml: |
+    info:
+      version: 1.0.0
+      description: Routing information for UE
+    
+    ueRoutingInfo:
+      - SUPI: imsi-2089300007487
+        AN: 10.200.200.101
+        PathList:
+          - DestinationIP: 60.60.0.101
+            DestinationPort: 8888
+            UPF: !!seq
+              - BranchingUPF
+              - AnchorUPF1
+    
+          - DestinationIP: 60.60.0.103
+            DestinationPort: 9999
+            UPF: !!seq
+              - BranchingUPF
+              - AnchorUPF2
+    
+      - SUPI: imsi-2089300007486
+        AN: 10.200.200.102
+        PathList:
+          - DestinationIP: 10.0.0.10
+            DestinationPort: 8888
+            UPF: !!seq
+              - BranchingUPF
+              - AnchorUPF1
+    
+          - DestinationIP: 10.0.0.11
+            DestinationPort: 9999
+            UPF: !!seq
+              - BranchingUPF
+              - AnchorUPF2
+
+    # routeProfile:
+    #   MEC1:
+    #     forwardingPolicyID: 10
+    #
+    # pfdDataForApp:
+    #   - applicationId: edge
+    #     pfds:
+    #       - pfdID: pfd1
+    #         flowDescriptions:
+    #           - permit out ip from 60.60.0.1 8080 to any
+
+  free5GC.conf: |
+    db_uri: {{ .Values.configuration.mongodb.url }}/free5GC
+    #all logging levels
+    #panic
+    #fatal
+    #error
+    #warn
+    #info
+    #debug
+    #trace
+    logger:
+    # network function
+      AMF:
+        debugLevel: info
+        ReportCaller: true
+      SMF:
+        debugLevel: debug
+        ReportCaller: true
+      UDR:
+        debugLevel: info
+        ReportCaller: true
+      UDM:
+        debugLevel: info
+        ReportCaller: true
+      NRF:
+        debugLevel: info
+        ReportCaller: true
+      PCF:
+        debugLevel: info
+        ReportCaller: true
+      AUSF:
+        debugLevel: info
+        ReportCaller: true
+      N3IWF:
+        debugLevel: info
+        ReportCaller: true
+    # library
+      NAS:
+        debugLevel: info
+        ReportCaller: true
+      FSM:
+        debugLevel: info
+        ReportCaller: true
+      NGAP:
+        debugLevel: info
+        ReportCaller: true
+      NamfComm:
+        debugLevel: info
+        ReportCaller: true
+      NamfEventExposure:
+        debugLevel: info
+        ReportCaller: true
+      NsmfPDUSession:
+        debugLevel: info
+        ReportCaller: true
+      NudrDataRepository:
+        debugLevel: info
+        ReportCaller: true
+      OpenApi:
+        debugLevel: debug
+        ReportCaller: true
+      Aper:
+        debugLevel: info
+        ReportCaller: true
+      CommonConsumerTest:
+        debugLevel: info
+        ReportCaller: true
+    # webui
+      WEBUI:
+        debugLevel: info
+        ReportCaller: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+   name: f5gc-smf-tls-secret
+type: Opaque
+data:
+   {{ tpl (.Files.Glob "resources/config/cert/smf.pem").AsSecrets . | indent 2 }}
+   {{ tpl (.Files.Glob "resources/config/cert/smf.key").AsSecrets . | indent 2 }}        

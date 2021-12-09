@@ -1,0 +1,22 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: httpcrd-serving-cert
+  namespace: {{ .Release.Namespace }}
+spec:
+  dnsNames:
+  - httpcrd-webhook-service.httpcrd-system.svc
+  - httpcrd-webhook-service.httpcrd-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: httpcrd-selfsigned-issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: httpcrd-selfsigned-issuer
+  namespace: {{ .Release.Namespace }}
+spec:
+  selfSigned: {}
+

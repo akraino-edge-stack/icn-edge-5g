@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: f5gc-mongodb
+  name: f5gc-mongodb
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - name: f5gc-mongodb
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port }}
+{{- if eq .Values.service.type "NodePort" }}
+    nodePort: {{ .Values.service.nodePort }}
+{{- end }}
+    protocol: TCP
+  selector:
+    app: f5gc-mongodb

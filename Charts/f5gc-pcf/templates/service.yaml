@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: f5gc-pcf
+  name: f5gc-pcf
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - name: f5gc-pcf
+    port: {{ .Values.service.port }}
+    protocol: TCP
+    targetPort: {{ .Values.service.port }}
+{{- if eq .Values.service.type "NodePort" }}
+    nodePort: {{ .Values.service.nodePort }}
+{{- end }}
+  selector:
+    app: f5gc-pcf

@@ -1,0 +1,140 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+---
+#create project
+version: emco/v2
+resourceContext:
+  anchor: projects
+metadata :
+   name: {{.ProjectName}}
+---
+#creating controller entries
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+   name: rsync
+spec:
+  host:  {{.HostIP}}
+  port: {{.RsyncPort}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+   name: dtc
+spec:
+  host: {{.HostIP}}
+  port: {{.DtcPort}}
+  type: "action"
+  priority: 1
+
+---
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+   name: ovnaction
+spec:
+  host: {{.HostIP}}
+  port: {{.OvnPort}}
+  type: "action"
+  priority: 1
+
+---
+#creating dtc controller entries
+version: emco/v2
+resourceContext:
+  anchor: dtc-controllers
+metadata :
+   name: nps
+spec:
+  host:  {{.HostIP}}
+  port: {{.NpsPort}}
+  type: "action"
+  priority: 1
+
+---
+#creating cluster provider
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers
+metadata :
+   name: {{.ClusterProvider}}
+
+---
+#creating cluster
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters
+metadata :
+   name: {{.Cluster1}}
+file:
+  {{.Kube1Config}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters
+metadata :
+   name: {{.Cluster2}}
+file:
+  {{.Kube2Config}}
+
+---
+
+#Add label cluster
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/labels
+label-name: {{.ClusterMonLabel}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/labels
+label-name: {{.ClusterMonLabel}}
+
+---
+#create admin logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds
+metadata:
+  name: {{.AdminCloud}}
+spec:
+  level: "0"
+
+---                                                                                                                          
+#add cluster reference to logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds/{{.AdminCloud}}/cluster-references
+metadata:
+  name: {{.Cluster1Ref}}
+spec:
+  cluster-provider: {{.ClusterProvider}}
+  cluster-name: {{.Cluster1}}
+  loadbalancer-ip: "0.0.0.0"
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds/{{.AdminCloud}}/cluster-references
+metadata:
+  name: {{.Cluster2Ref}}
+spec:
+  cluster-provider: {{.ClusterProvider}}
+  cluster-name: {{.Cluster2}}
+  loadbalancer-ip: "0.0.0.0"
+
+---
+
+#instantiate logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds/{{.AdminCloud}}/instantiate
+
+
