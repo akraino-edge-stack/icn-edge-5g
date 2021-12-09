@@ -1,0 +1,130 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: mobilesubscribers.slice.slice.free5gc.io
+spec:
+  group: slice.slice.free5gc.io
+  names:
+    kind: Mobilesubscriber
+    listKind: MobilesubscriberList
+    plural: mobilesubscribers
+    singular: mobilesubscriber
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Mobilesubscriber is the Schema for the mobilesubscribers API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MobilesubscriberSpec defines the desired state of Mobilesubscriber
+            properties:
+              authKey:
+                default: 8baf473f2f8fd09487cccbd7097c6862
+                type: string
+              authMethod:
+                default: 5G_AKA
+                enum:
+                - 5G_AKA
+                - EAP_AKA_PRIME
+                type: string
+              name:
+                description: 'Important: Run "make" to regenerate code after modifying
+                  this file'
+                type: string
+              opType:
+                default: OP
+                enum:
+                - OP
+                - OPc
+                type: string
+              opValue:
+                default: 8e27b6af0e692e750f32667a3b14605d
+                type: string
+              plmnid:
+                type: string
+              snssai:
+                items:
+                  properties:
+                    dnn:
+                      items:
+                        properties:
+                          ambr:
+                            properties:
+                              downlink:
+                                type: string
+                              uplink:
+                                type: string
+                            type: object
+                          flowRule:
+                            properties:
+                              gbrDL:
+                                type: string
+                              gbrUL:
+                                type: string
+                              ipFilter:
+                                type: string
+                              mbrDL:
+                                type: string
+                              mbrUL:
+                                type: string
+                              qiVal:
+                                maximum: 255
+                                minimum: 0
+                                type: integer
+                            type: object
+                          name:
+                            type: string
+                          qiVal:
+                            format: int32
+                            maximum: 255
+                            minimum: 0
+                            type: integer
+                        type: object
+                      minItems: 1
+                      type: array
+                    isDefault:
+                      type: boolean
+                    sd:
+                      type: string
+                    sst:
+                      format: int32
+                      type: integer
+                  type: object
+                minItems: 2
+                type: array
+              supi:
+                default: "208930000000003"
+                type: string
+            type: object
+          status:
+            description: MobilesubscriberStatus defines the observed state of Mobilesubscriber
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

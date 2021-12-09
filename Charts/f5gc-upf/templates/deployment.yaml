@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: f5gc-upf
+    sliceidx: 6d3d79da-f781-4cd9-813a-dbdad01e01c0
+    sdewanPurpose: {{ .Values.sdewan.labels }}-{{ .Release.Namespace }}
+  annotations:
+    free5gc.org/nssi-id: '27394d25-dbf5-428e-8fc3-f5b2add67115'
+    free5gc.org/nsi-ids: '[
+        { "id": "4e6db941-47d6-4fce-9c71-f7eb35a75d03" },
+    ]'
+spec:
+  #serviceName: "f5gc-upf"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: f5gc-upf
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: f5gc-upf
+        baseApp: {{.Values.baseApp}}
+        sdewanPurpose: {{ .Values.sdewan.labels }}-{{ .Release.Namespace }}
+        cnf-account-secret: {{ .Values.sdewan.passwdSecret }}
+        cnf-cert-secret: cnf-{{ .Release.Namespace }}-cert
+
+{{- if eq .Values.helmInstallOvn false }}
+      annotations:
+        k8s.v1.cni.cncf.io/networks: '[{
+            "name": "ovn-networkobj",
+            "namespace": "default"
+          }]'
+        k8s.plugin.opnfv.org/nfn-network: '{ "type": "ovn4nfv", "interface": [{ "name": "gtpunetwork", "interface": "n3" }]}'
+{{- end }}
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      nodeSelector:
+{{ .Values.nodeSelector | toYaml | indent 8 }}
+      hostname: {{.Values.hostname}}
+      subdomain: {{.Values.subdomain}}
+      containers:
+        - name: free5g-305-upf 
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["./free5gc-upfd"]
+          args:
+            - -f
+            - ../config/upfcfg.yaml
+          resources:
+{{ .Values.resources | toYaml | indent 12 }}
+          securityContext:
+            privileged: false
+            capabilities:
+              add: ["NET_ADMIN", "NET_RAW", "NET_BIND_SERVICE", "SYS_TIME"]
+          volumeMounts:
+            - name: f5gc-upf-config
+              mountPath: /free5gc/config
+            - mountPath: /dev/net/tun
+              name: tun-devdir
+          ports:
+            - containerPort: 2152
+              name: if-n3
+              protocol: UDP
+            - containerPort: 8805
+              name: if-n4
+              protocol: UDP
+{{- if .Values.tcpdump.image }}
+        - name: tcpdump
+          image: {{ .Values.tcpdump.image }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sleep
+            - infinity
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+{{- end }}
+        - name: {{ .Values.sdewan.name }}
+          image: {{ .Values.sdewan.image }}
+          imagePullPolicy: {{ .Values.sdewan.imagePullPolicy }}
+          command:
+          - /usr/bin/sudo
+          - /bin/sh
+          - /tmp/sdewan/entrypoint.sh
+          securityContext:
+            privileged: true
+            procMount: Default
+          volumeMounts:
+          - mountPath: /tmp/sdewan
+            name: sdewan-safe-sh
+            readOnly: true
+          - mountPath: /tmp/podinfo
+            name: podinfo
+            readOnly: true
+          - mountPath: /tmp/sdewan/serving-certs
+            name: cert
+            readOnly: true
+          - mountPath: /tmp/sdewan/account
+            name: account
+            readOnly: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccountName: f5gc-upf-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: f5gc-upf-config
+          configMap:
+            name: f5gc-upf-config
+        - name: tun-devdir
+          hostPath:
+            path: /dev/net/tun
+        - configMap:
+            defaultMode: 420
+            name: sdewan-safe-sh
+          name: sdewan-safe-sh
+        - name: podinfo
+          downwardAPI:
+            items:
+              - path: "annotations"
+                fieldRef:
+                  fieldPath: metadata.annotations
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: cnf-{{ .Release.Namespace }}-cert
+        - name: account
+          secret:
+             defaultMode: 420
+             secretName: {{ .Values.sdewan.passwdSecret }}

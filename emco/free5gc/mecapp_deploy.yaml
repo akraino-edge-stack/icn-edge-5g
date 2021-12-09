@@ -1,0 +1,208 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+{{- range $index, $mec := .mecApp }}
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps
+metadata :
+  name: {{ $mec.compAppName}}
+spec:
+  compositeAppVersion: {{ $mec.compAppVer }}
+
+{{- range $index, $app := $mec.Apps }}
+---
+#adding packetgen app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/apps
+metadata :
+  name: {{ $app.name }}
+file:
+  {{ $.ChartHelmSrc }}/{{ $app.helmApp }}
+
+{{- end }}
+---
+#creating vfw composite profile entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName}}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/composite-profiles
+metadata :
+  name: {{ $mec.compProfileName}}
+
+{{- range $index, $app := $mec.Apps }}
+---
+#adding packetgen app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/composite-profiles/{{ $mec.compProfileName }}/profiles
+metadata :
+  name: {{ $app.profileName }}
+spec:
+  app: {{ $app.name }}
+file:
+  {{ $.f5gcHelmProf }}/{{ $app.profileFw }}
+
+{{- end }}
+---
+#create deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups
+metadata :
+  name: {{ $mec.depIntGrpName }}
+spec:
+  compositeProfile: {{ $mec.compProfileName }}
+  version: r1
+  logicalCloud: {{ $mec.lCloud }}
+  overrideValues:
+{{- range $index, $app := $mec.Apps }}
+  - app: {{ $app.name }}
+    values:
+{{- range $key, $val := $app.values }}
+      {{ $key }}: "{{ $val }}"
+{{- end }}
+{{- end }}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/intents
+metadata :
+  name: {{ $mec.compAppName }}-deployment-intent
+spec:
+  intent:
+    genericPlacementIntent: {{ $mec.compAppName }}-placement-intent
+    gac: generick8s_intent
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/generic-placement-intents
+metadata :
+  name: {{ $mec.compAppName }}-placement-intent
+spec:
+  logicalCloud: {{ $mec.lCloud }}
+
+{{- range $index, $app := $mec.Apps }}
+---
+#add the packetgen app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/generic-placement-intents/{{ $mec.compAppName }}-placement-intent/app-intents
+metadata:
+  name: {{ $app.name }}-placement-intent
+spec:
+  app: {{ $app.name }}
+  intent:
+    allOf:
+{{- range $index, $int := $app.cluster }}
+    - clusterProvider: {{ $int.provider }}
+      clusterLabel: {{ $int.label }}
+{{- end }}
+{{- end }}
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/generic-k8s-intents
+metadata:
+  name: generick8s_intent
+
+{{- range $index, $app := $mec.Apps }}
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources
+metadata:
+  name: resource-{{ $app.name }}-service
+spec:
+  app: {{ $app.name }}
+  newObject: "false"
+  resourceGVK:
+    apiVersion: v1
+    kind: Service
+    name: r1-{{ $app.name }}
+file:
+  info.json
+
+---
+#create the generic action intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources/resource-{{ $app.name }}-service/customizations
+metadata :
+  name: {{ $app.name }}-service-customization
+spec:
+  clusterSpecific: "false"
+  clusterInfo:
+    scope: Label
+{{- range $index, $int := $app.cluster }}
+    clusterProvider: {{ $int.provider }}
+    clusterLabel: {{ $int.label }}
+{{- end }}
+    clusterName: "dummy"
+    mode: allow
+  patchType: "json"
+  patchJson: [
+    {
+      "op": "add",
+      "path": "/metadata/annotations",
+      "value": {
+         "external-dns.alpha.kubernetes.io/hostname": "{{ $app.name }}.{{ $mec.namespace }}.f5gnetslice.com"
+       }
+    }
+  ]
+files:
+  - info.json
+
+{{- end }}
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources
+metadata:
+  name: resource-traffic-steering-service
+spec:
+  app: demo-nginx-rtmp
+  newObject: "true"
+  resourceGVK:
+    apiVersion: batch.sdewan.akraino.org/v1alpha1
+    kind: CNFLocalService
+    name: nat-sample
+file:
+  trafficsteering.yaml
+
+---
+#create the generic action intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources/resource-traffic-steering-service/customizations
+metadata :
+  name: resource-traffic-steering-customization
+spec:
+  clusterSpecific: "true"
+  clusterInfo:
+    scope: Label
+    clusterProvider: edgeProvider
+    clusterLabel: LabelA
+    clusterName: "dummy"
+    mode: allow
+files:
+  - info.json
+
+---
+
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/approve
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $mec.compAppName }}/{{ $mec.compAppVer }}/deployment-intent-groups/{{ $mec.depIntGrpName }}/instantiate
+
+{{- end }}

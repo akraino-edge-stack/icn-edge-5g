@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: f5gc-nrf-config
+  namespace: {{ .Release.Namespace }}
+data:
+
+  nrfcfg.conf: |
+    info:
+      version: 1.0.0
+      description: NRF initial local configuration
+    
+    configuration:
+      MongoDBName: "free5gc"
+      #MongoDBUrl: "mongodb://f5gc-mongodb:32017"
+      MongoDBUrl: {{ .Values.configuration.MongoDBUrl }}
+      DefaultServiceIP: "f5gc-nrf"
+      sbi:
+        scheme: http
+        registerIPv4: {{ .Values.configuration.sbi.registerIPv4 }}
+        bindingIPv4: 0.0.0.0
+        port: {{ .Values.service.port }}
+      DefaultPlmnId:
+        mcc: "208"
+        mnc: "93"
+      serviceNameList:
+        - nnrf-nfm
+        - nnrf-disc
+
+  free5GC.conf: |
+    db_uri: {{ .Values.configuration.MongoDBUrl }}/free5GC
+    #db_uri: mongodb://192.168.30.54:32017/free5GC
+    #db_uri: mongodb://f5gc-mongodb:32017/free5GC
+    #all logging levels
+    #panic
+    #fatal
+    #error
+    #warn
+    #info
+    #debug
+    #trace
+    logger:
+    # network function
+      AMF:
+        debugLevel: info
+        ReportCaller: true
+      SMF:
+        debugLevel: info
+        ReportCaller: true
+      UDR:
+        debugLevel: info
+        ReportCaller: true
+      UDM:
+        debugLevel: info
+        ReportCaller: true
+      NRF:
+        debugLevel: info
+        ReportCaller: true
+      PCF:
+        debugLevel: info
+        ReportCaller: true
+      AUSF:
+        debugLevel: info
+        ReportCaller: true
+      N3IWF:
+        debugLevel: info
+        ReportCaller: true
+    # library
+      NAS:
+        debugLevel: info
+        ReportCaller: true
+      FSM:
+        debugLevel: info
+        ReportCaller: true
+      NGAP:
+        debugLevel: info
+        ReportCaller: true
+      NamfComm:
+        debugLevel: info
+        ReportCaller: true
+      NamfEventExposure:
+        debugLevel: info
+        ReportCaller: true
+      NsmfPDUSession:
+        debugLevel: info
+        ReportCaller: true
+      NudrDataRepository:
+        debugLevel: info
+        ReportCaller: true
+      OpenApi:
+        debugLevel: debug
+        ReportCaller: true
+      Aper:
+        debugLevel: info
+        ReportCaller: true
+      CommonConsumerTest:
+        debugLevel: info
+        ReportCaller: true
+    # webui
+      WEBUI:
+        debugLevel: info
+        ReportCaller: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+   name: f5gc-nrf-tls-secret
+   namespace: {{ .Release.Namespace }}
+type: Opaque
+data:
+  {{ tpl (.Files.Glob "resources/config/cert/nrf.pem").AsSecrets . | indent 2 }}
+  {{ tpl (.Files.Glob "resources/config/cert/nrf.key").AsSecrets . | indent 2 }}
+

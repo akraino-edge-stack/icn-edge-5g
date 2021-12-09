@@ -1,0 +1,162 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: f5gc-amf-config
+data:
+  amfcfg.conf: |
+    info:
+      version: 1.0.0
+      description: AMF initial local configuration
+    
+    configuration:
+      amfName: AMF
+      ngapIpList:
+        - 172.16.24.3                 # assigned to a second network interface
+      sbi:
+        scheme: {{ .Values.configuration.sbi.scheme }}
+        registerIPv4: {{ .Values.configuration.sbi.registerIPv4 }}         # Can also be a kubernetes service IP or domain name.
+        bindingIPv4: 0.0.0.0           # Can also be an ENV.
+        port: {{ .Values.service.port }}
+      serviceNameList:
+        - namf-comm
+        - namf-evts
+        - namf-mt
+        - namf-loc
+        - namf-oam
+      servedGuamiList:
+        - plmnId:
+            mcc: 208
+            mnc: 93
+          amfId: cafe00
+      supportTaiList:
+        - plmnId:
+            mcc: 208
+            mnc: 93
+          tac: 1
+      plmnSupportList:
+        - plmnId:
+            mcc: 208
+            mnc: 93
+          snssaiList:
+            - sst: 1
+              sd: 010203
+            - sst: 1
+              sd: 112233
+            - sst: 2
+              sd: 010203
+      supportDnnList:
+        - internet
+      nrfUri: {{ .Values.configuration.nrfUri }}
+      security:
+        integrityOrder:
+          - NIA2
+            #- NIA0
+        cipheringOrder:
+          - NEA0
+            #- NEA2
+      networkName:
+        full: free5GC
+        short: free
+      t3502Value: 720
+      t3512Value: 3600
+      non3gppDeregistrationTimer: 1000
+      t3513:
+        enable: true
+        expireTime: 6s
+        maxRetryTimes: 4
+      t3522:
+        enable: true
+        expireTime: 6s
+        maxRetryTimes: 4
+      t3550:
+        enable: true
+        expireTime: 6s
+        maxRetryTimes: 4
+      t3560:
+        enable: true
+        expireTime: 6s
+        maxRetryTimes: 4
+      t3565:
+        enable: true
+        expireTime: 6s
+        maxRetryTimes: 4
+  free5GC.conf: |
+    db_uri: {{ .Values.mongodb.url }}/free5GC
+    #all logging levels
+    #panic
+    #fatal
+    #error
+    #warn
+    #info
+    #debug
+    #trace
+    logger:
+    # network function
+      AMF:
+        debugLevel: trace
+        ReportCaller: true
+      SMF:
+        debugLevel: info
+        ReportCaller: true
+      UDR:
+        debugLevel: info
+        ReportCaller: true
+      UDM:
+        debugLevel: info
+        ReportCaller: true
+      NRF:
+        debugLevel: info
+        ReportCaller: true
+      PCF:
+        debugLevel: info
+        ReportCaller: true
+      AUSF:
+        debugLevel: info
+        ReportCaller: true
+      N3IWF:
+        debugLevel: info
+        ReportCaller: true
+    # library
+      NAS:
+        debugLevel: info
+        ReportCaller: true
+      FSM:
+        debugLevel: info
+        ReportCaller: true
+      NGAP:
+        debugLevel: trace
+        ReportCaller: true
+      NamfComm:
+        debugLevel: debug
+        ReportCaller: true
+      NamfEventExposure:
+        debugLevel: info
+        ReportCaller: true
+      NsmfPDUSession:
+        debugLevel: info
+        ReportCaller: true
+      NudrDataRepository:
+        debugLevel: info
+        ReportCaller: true
+      OpenApi:
+        debugLevel: debug
+        ReportCaller: true
+      Aper:
+        debugLevel: info
+        ReportCaller: true
+      CommonConsumerTest:
+        debugLevel: info
+        ReportCaller: true
+    # webui
+      WEBUI:
+        debugLevel: info
+        ReportCaller: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+    name: f5gc-amf-tls-secret 
+type: Opaque
+data:
+   {{ tpl (.Files.Glob "resources/config/cert/amf.pem").AsSecrets . | indent 2 }}
+   {{ tpl (.Files.Glob "resources/config/cert/amf.key").AsSecrets . | indent 2 }}

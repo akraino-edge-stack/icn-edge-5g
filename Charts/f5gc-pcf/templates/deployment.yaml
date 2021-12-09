@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: f5gc-pcf
+  labels:
+    app: f5gc-pcf
+  annotations:
+    free5gc.org/nssi-id: '27394d25-dbf5-428e-8fc3-f5b2add67115'
+    free5gc.org/nsi-ids: '[
+        { "id": "4e6db941-47d6-4fce-9c71-f7eb35a75d03" },
+    ]'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: f5gc-pcf
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: f5gc-pcf
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      nodeSelector:
+{{ .Values.nodeSelector | toYaml | indent 8 }}
+      initContainers:
+      - name: init-myservice
+        image: busybox:1.31.1
+        command: ['sh', '-c', "until wget -qO- $nrfUri &> /dev/null; do echo waiting for $nrfUri; sleep 2; done"]
+        env:
+        - name: nrfUri
+          value: {{ .Values.configuration.nrfUri }}
+      containers:
+        - name: free5g-305-pcf 
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["./pcf"]
+          args:
+            - -pcfcfg
+            - ../config/pcfcfg.conf
+          resources:
+{{ .Values.resources | toYaml | indent 12 }}
+          securityContext:
+            privileged: false
+          volumeMounts:
+            - name: f5gc-pcf-config
+              mountPath: /free5gc/config
+            - name: f5gc-pcf-cert
+              mountPath: /free5gc/support/TLS
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: f5gc-pcf
+              protocol: TCP
+{{- if .Values.tcpdump.image }}
+        - name: tcpdump
+          image: {{ .Values.tcpdump.image }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sleep
+            - infinity
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+{{- end }}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccountName: f5gc-pcf-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: f5gc-pcf-cert
+          secret:
+            secretName: f5gc-pcf-tls-secret
+        - name: f5gc-pcf-config
+          configMap:
+            name: f5gc-pcf-config

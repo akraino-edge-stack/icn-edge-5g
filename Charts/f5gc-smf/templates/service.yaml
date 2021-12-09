@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: f5gc-smf
+  name: f5gc-smf
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - name: f5gc-smf-sbi
+    port: {{ .Values.service.port }}
+    protocol: TCP
+    targetPort: {{ .Values.service.port }}
+{{- if eq .Values.service.type "NodePort" }}
+    nodePort: {{ .Values.service.nodePort }}
+{{- end }}
+  selector:
+    app: f5gc-smf
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: f5gc-smf-n4
+  name: f5gc-smf-n4
+spec:
+  type: {{ .Values.n4service.type }}
+  ports:
+  - name: f5gc-smf-n4
+    port: {{ .Values.n4service.port }}
+    protocol: UDP
+    targetPort: {{ .Values.n4service.port }}
+{{- if eq .Values.n4service.type "NodePort" }}
+    nodePort: {{ .Values.n4service.nodePort }}
+{{- end }}
+  selector:
+    app: f5gc-smf

@@ -1,0 +1,17 @@
+upfcfg:
+  info:
+    version: 1.0.0
+    description: UPF configuration
+  configuration:
+    debugLevel: debug
+    ReportCaller: false
+    pfcp:
+      - addr: f5gc-upf.free5g.default.svc.cluster.local
+    gtpu:
+      - addr: 172.16.34.3
+    dnn_list:
+      - dnn: internet
+        cidr: 172.16.1.0/24
+
+
+  

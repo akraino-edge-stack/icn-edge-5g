@@ -1,0 +1,57 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: httpcrd-system/httpcrd-serving-cert
+  name: httpcrd-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: httpcrd-webhook-service
+      namespace: {{ .Release.Namespace }}
+      path: /mutate-slice-slice-free5gc-io-v1alpha1-mobilesubscriber
+  failurePolicy: Fail
+  name: mmobilesubscriber.kb.io
+  rules:
+  - apiGroups:
+    - slice.slice.free5gc.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - mobilesubscribers
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: httpcrd-system/httpcrd-serving-cert
+  name: httpcrd-validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: httpcrd-webhook-service
+      namespace: {{ .Release.Namespace }}
+      path: /validate-slice-slice-free5gc-io-v1alpha1-mobilesubscriber
+  failurePolicy: Fail
+  name: vmobilesubscriber.kb.io
+  rules:
+  - apiGroups:
+    - slice.slice.free5gc.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - mobilesubscribers
+  sideEffects: None

@@ -1,0 +1,44 @@
+apiVersion: slice.slice.free5gc.io/v1alpha1
+kind: Mobilesubscriber
+metadata:
+  name: mobilesubscriber-sample
+spec:
+  # Add fields here
+  name: sub1
+  plmnid: "20893"
+  supi: "208930000000003"
+  authMethod: "5G_AKA"
+  authKey: "8baf473f2f8fd09487cccbd7097c6862"
+  opType: "OP"
+  opValue: "8e27b6af0e692e750f32667a3b14605d"
+  snssai:
+    - sst: 1
+      sd: "010203"
+      isDefault: true
+      dnn:
+        - name: internet
+          ambr:
+            uplink: "200 Mbps"
+            downlink: "100 Mbps"
+          qiVal: 9
+        - name: internet2
+          ambr:
+            uplink: "200 Mbps"
+            downlink: "100 Mbps"
+          qiVal: 9
+    - sst: 2
+      sd: "010203"
+      isDefault: true
+      dnn:
+        - name: internet
+          ambr:
+            uplink: "200 Mbps"
+            downlink: "100 Mbps"
+          qiVal: 9
+        - name: internet2
+          ambr:
+            uplink: "200 Mbps"
+            downlink: "100 Mbps"
+          qiVal: 9
+
+

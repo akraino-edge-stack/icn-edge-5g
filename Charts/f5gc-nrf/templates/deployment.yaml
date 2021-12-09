@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: f5gc-nrf
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: f5gc-nrf
+  annotations:
+    free5gc.org/nssi-id: '27394d25-dbf5-428e-8fc3-f5b2add67115'
+    free5gc.org/nsi-ids: '[
+        { "id": "4e6db941-47d6-4fce-9c71-f7eb35a75d03" },
+    ]'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: f5gc-nrf
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: f5gc-nrf
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      nodeSelector:
+{{ .Values.nodeSelector | toYaml | indent 8 }}
+      containers:
+        - name: free5g-305-nrf 
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["./nrf"]
+          args:
+            - -nrfcfg
+            - ../config/nrfcfg.conf
+          resources:
+{{ .Values.resources | toYaml | indent 12 }}
+          securityContext:
+            privileged: false
+          volumeMounts:
+            - name: f5gc-nrf-config
+              mountPath: /free5gc/config
+            - name: f5gc-nrf-cert
+              mountPath: /free5gc/support/TLS
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: f5gc-nrf
+              protocol: TCP
+{{- if .Values.tcpdump.image }}
+        - name: tcpdump
+          image: {{ .Values.tcpdump.image }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sleep
+            - infinity
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+{{- end }}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccountName: f5gc-nrf-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: f5gc-nrf-cert
+          secret:
+            secretName: f5gc-nrf-tls-secret
+        - name: f5gc-nrf-config
+          configMap:
+            name: f5gc-nrf-config

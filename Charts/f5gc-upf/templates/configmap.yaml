@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: f5gc-upf-config
+data:
+  upfcfg.yaml: |
+{{ .Values.upfcfg | toYaml | indent 4 }}
+

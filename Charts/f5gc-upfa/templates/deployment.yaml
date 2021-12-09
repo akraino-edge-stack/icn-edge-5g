@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: f5gc-upfa
+    sliceidx: 6d3d79da-f781-4cd9-813a-dbdad01e01c0
+  annotations:
+    free5gc.org/nssi-id: '27394d25-dbf5-428e-8fc3-f5b2add67115'
+    free5gc.org/nsi-ids: '[
+        { "id": "4e6db941-47d6-4fce-9c71-f7eb35a75d03" },
+    ]'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: f5gc-upfa
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: f5gc-upfa
+        baseApp: free5g
+      annotations:
+        k8s.v1.cni.cncf.io/networks: '[{
+            "name": "ovn-networkobj",
+            "namespace": "default"
+          }]'
+          # k8s.plugin.opnfv.org/nfn-network: '{ "type": "ovn4nfv", "interface": [{ "name": "gtpunetwork", "interface": "n3" }]}'
+        k8s.plugin.opnfv.org/nfn-network: '{ "type": "ovn4nfv", "interface": [{ "name": "ovn-upfa-net", "interface": "n9", "defaultGateway": "false"}]}'
+        #annotations:
+        #k8s.v1.cni.cncf.io/networks: '[{
+        #    "name": "n3",
+        #    "namespace": "default",
+        #    "interface": "net3",
+        #    "ip": "192.168.20.20"
+        #  },
+        #  {
+        #    "name": "n4",
+        #    "namespace": "default",
+        #    "interface": "net4",
+        #    "ip": "172.16.40.30"
+        #  },
+        #  {
+        #    "name": "n6",
+        #    "namespace": "default",
+        #    "interface": "net6",
+        #    "ip": "172.16.41.30"
+        #  }]'
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      nodeSelector:
+{{ .Values.nodeSelector | toYaml | indent 8 }}
+      hostname: f5gc-upfa
+      subdomain: free5g
+      containers:
+        - name: free5g-304-upf 
+          image: sandeepaarna/free5g-304-upf:dev 
+          imagePullPolicy: IfNotPresent
+          # imagePullPolicy: Always
+          securityContext:
+            privileged: false
+            capabilities:
+              add: ["NET_ADMIN", "NET_RAW", "NET_BIND_SERVICE", "SYS_TIME"]
+          volumeMounts:
+            - name: f5gc-upfa-config
+              mountPath: /free5gc/config
+            - mountPath: /dev/net/tun
+              name: tun-devdir
+          ports:
+            - containerPort: 2152
+              name: if-n3
+              protocol: UDP
+            - containerPort: 8805
+              name: if-n4
+              protocol: UDP
+        - name: tcpdump
+          image: corfr/tcpdump
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sleep
+            - infinity
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccountName: f5gc-upfa-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: f5gc-upfa-config
+          configMap:
+            name: f5gc-upfa-config
+        - name: tun-devdir
+          hostPath:
+            path: /dev/net/tun
