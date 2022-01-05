@@ -1,0 +1,298 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+#creating vfw composite app entry
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps
+metadata :
+  name: {{.CompositeProviderAppName}}
+spec:
+  compositeAppVersion: v1
+
+---
+#adding packetgen app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/apps
+metadata :
+  name: external-dns
+file:
+  {{.ChartHelmSrc}}/{{.HelmAppDNS}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/apps
+metadata :
+  name: metallb
+file:
+  {{.ChartHelmSrc}}/{{.HelmAppMetal}}
+
+---
+
+#creating vfw composite profile entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/composite-profiles
+metadata :
+  name: {{.CompProviderProfileName}}
+
+---
+#adding packetgen app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/composite-profiles/{{.CompProviderProfileName}}/profiles
+metadata :
+  name: external-dns-profile
+spec:
+  app: external-dns
+file:
+  {{.f5gcHelmProf}}/{{.DefaultProfileFw}}
+
+---
+#adding packetgen app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/composite-profiles/{{.CompProviderProfileName}}/profiles
+metadata :
+  name: metallb-profile
+spec:
+  app: metallb
+file:
+  {{.f5gcHelmProf}}/{{.DefaultProfileFw}}
+
+---
+
+#create deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups
+metadata :
+  name: {{.ProviderDepIntGrpName}}
+spec:
+  compositeProfile: {{.CompProviderProfileName}}
+  version: r1
+  logicalCloud: {{.AdminCloud}}
+  overrideValues:
+  - app: external-dns
+    values:
+      "logLevel": "debug"
+      "interval": "30s"
+      "policy":  "sync"
+      "provider": "pdns"
+      "pdns.apiUrl": "http://192.168.20.50"
+      "pdns.apiKey": "NETSLICING"
+  - app: metallb
+    values:
+      "configInline.address-pools[0].name": "default"
+      "configInline.address-pools[0].protocol": "layer2"
+      "configInline.address-pools[0].addresses[0]": "192.168.30.220-192.168.30.250"
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/intents
+metadata :
+  name: provider-deployment-intent
+spec:
+  intent:
+    genericPlacementIntent: provider-placement-intent
+    gac: generick8s_intent
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-placement-intents
+metadata :
+  name: provider-placement-intent
+spec:
+  logicalCloud: {{.AdminCloud}}
+
+---
+#add the packetgen app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-placement-intents/provider-placement-intent/app-intents
+metadata:
+  name: placement-intent
+spec:
+  app: external-dns
+  intent:
+    allOf:
+    - clusterProvider: {{.ClusterProvider}}
+      clusterLabel: {{.ClusterLabel}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-placement-intents/provider-placement-intent/app-intents
+metadata:
+  name: metallb-placement-intent
+spec:
+  app: metallb
+  intent:
+    allOf:
+    - clusterProvider: {{.ClusterProvider}}
+      clusterLabel: {{.ClusterLabel}}
+
+---
+
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents
+metadata:
+  name: generick8s_intent
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents/generick8s_intent/resources
+metadata:
+  name: resource-external-dns-deployment
+spec:
+  app: external-dns
+  newObject: "false"
+  resourceGVK:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: r1-external-dns
+file:
+  info.json
+
+---
+#create the generic action intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents/generick8s_intent/resources/resource-external-dns-deployment/customizations
+metadata :
+  name: external-dns-customization-B
+spec:
+  clusterSpecific: "true"
+  clusterInfo:
+    scope: Label
+    clusterProvider: {{.ClusterProvider}}
+    clusterName: "dummy"
+    clusterLabel: {{.Cluster1Label}}
+    mode: allow
+  patchType: "json"
+  patchJson: [
+    {
+      "op": "add",
+      "path": "/spec/template/spec/containers/0/args/-",
+      "value": "--txt-owner-id=kube-two"
+    }
+  ]
+files:
+  - info.json
+
+---
+#create the generic action intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents/generick8s_intent/resources/resource-external-dns-deployment/customizations
+metadata :
+  name: external-dns-customization-C
+spec:
+  clusterSpecific: "true"
+  clusterInfo:
+    scope: Label
+    clusterProvider: {{.ClusterProvider}}
+    clusterName: "dummy"
+    clusterLabel: {{.Cluster2Label}}
+    mode: allow
+  patchType: "json"
+  patchJson: [
+    {
+      "op": "add",
+      "path": "/spec/template/spec/containers/0/args/-",
+      "value": "--txt-owner-id=kube-three"
+    }
+  ]
+files:
+  - info.json
+
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents/generick8s_intent/resources
+metadata:
+  name: resource-metallb-deployment
+spec:
+  app: metallb
+  newObject: "false"
+  resourceGVK:
+    apiVersion: v1
+    kind: ConfigMap
+    name: r1-metallb
+file:
+  info.json
+
+---
+#create the generic action intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents/generick8s_intent/resources/resource-metallb-deployment/customizations
+metadata :
+  name: metallb-customization-B
+spec:
+  clusterSpecific: "true"
+  clusterInfo:
+    scope: Label
+    clusterProvider: {{.ClusterProvider}}
+    clusterName: "dummy"
+    clusterLabel: {{.Cluster1Label}}
+    mode: allow
+  patchType: "json"
+  patchJson: [
+    {
+      "op": "replace",
+      "path": "/data/config",
+      "value": "  address-pools:\n  - addresses:\n    - 192.168.20.220-192.168.20.250\n    name: default\n    protocol: layer2\n"
+    }
+  ]
+
+files:
+  - info.json
+
+---
+#create the generic action intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents/generick8s_intent/resources/resource-metallb-deployment/customizations
+metadata :
+  name: metallb-customization-C
+spec:
+  clusterSpecific: "true"
+  clusterInfo:
+    scope: Label
+    clusterProvider: {{.ClusterProvider}}
+    clusterName: "dummy"
+    clusterLabel: {{.Cluster2Label}}
+    mode: allow
+  patchType: "json"
+  patchJson: [
+    {
+      "op": "replace",
+      "path": "/data/config",
+      "value": "  address-pools:\n  - addresses:\n    - 192.168.30.220-192.168.30.250\n    name: default\n    protocol: layer2\n"
+    }
+  ]
+files:
+  - info.json
+
+---
+
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/approve
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/instantiate
