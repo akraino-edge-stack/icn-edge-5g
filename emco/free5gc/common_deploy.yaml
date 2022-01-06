@@ -1,8 +1,91 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2020 Intel Corporation
 
+---
+#Add label cluster
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/labels
+clusterLabel: LabelA
 
-{{- range $index, $slice := .slice }}
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/labels
+clusterLabel: LabelB
+
+---
+#Add kv cluster
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{ .ClusterProvider }}/clusters/{{ .Cluster1 }}/kv-pairs
+metadata:
+  name: cluster1key2
+spec:
+  kv:
+    - CNI-Networking-Nodus-CNI-For-all-interfaces: "true"
+
+---
+#Add kv cluster
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{ .ClusterProvider }}/clusters/{{ .Cluster2 }}/kv-pairs
+metadata:
+  name: cluster2key2
+spec:
+  kv:
+    - CNI-Networking-Nodus-CNI-For-all-interfaces: "true"
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/provider-networks
+metadata:
+  name: gtpunetwork
+spec:
+  cniType: ovn4nfv
+  ipv4Subnets:
+  - subnet: 172.16.34.0/24
+    name: gtpu1
+    gateway: 172.16.34.1/24
+    excludeIps: 172.16.34.2 172.16.34.5..172.16.34.10
+  providerNetType: VLAN
+  vlan:
+    vlanId: "101"
+    providerInterfaceName: ens4
+    logicalInterfaceName: ens4.101
+    vlanNodeSelector: specific
+    nodeLabelList:
+    - kubernetes.io/hostname=kube-three
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/provider-networks
+metadata:
+  name: sctpnetwork
+spec:
+  cniType: ovn4nfv
+  ipv4Subnets:
+  - subnet: 172.16.24.0/24
+    name: sctp1
+    gateway: 172.16.24.1/24
+    excludeIps: 172.16.24.2 172.16.24.5..172.16.24.10
+  providerNetType: VLAN
+  vlan:
+    vlanId: "102"
+    providerInterfaceName: ens4
+    logicalInterfaceName: ens4.102
+    vlanNodeSelector: specific
+    nodeLabelList:
+    - kubernetes.io/hostname=kube-three
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/apply 
+
+{{- range $index, $slice := .common }}
 ---
 version: emco/v2
 resourceContext:
@@ -338,6 +421,40 @@ files:
   - info.json
 
 {{- end }}
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources
+metadata:
+  name: resource-external-name-service
+spec:
+  app: f5gc-amf
+  newObject: "true"
+  resourceGVK:
+    apiVersion: v1
+    kind: Service
+    name: cdn-external-service
+file:
+  externalDNSentry.yaml
+
+---
+#create the generic action intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources/resource-external-name-service/customizations
+metadata :
+  name: resource-external-name-customization
+spec:
+  clusterSpecific: "true"
+  clusterInfo:
+    scope: Label
+    clusterProvider: edgeProvider
+    clusterLabel: LabelA
+    clusterName: "dummy"
+    mode: allow
+files:
+  - info.json
+
 {{- range $index, $app := $slice.dependency }}
 {{- range $index, $dep := $app.depApps }}
 ---

@@ -2,31 +2,30 @@
 # Copyright (c) 2020 Intel Corporation
 #creating vfw composite app entry
 
----
+#---
 #Add label cluster
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/labels
-clusterLabel: sdewanLabelA
+#version: emco/v2
+#resourceContext:
+#  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/labels
+#clusterLabel: sdewanLabelA
+
+#---
+#version: emco/v2
+#resourceContext:
+#  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/labels
+#clusterLabel: sdewanLabelB
+
+#---
+#version: emco/v2
+#resourceContext:
+#  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/apply 
+
+#---
+#version: emco/v2
+#resourceContext:
+#  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/apply 
 
 ---
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/labels
-clusterLabel: sdewanLabelB
-
----
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/apply 
-
----
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/apply 
-
----
-
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps

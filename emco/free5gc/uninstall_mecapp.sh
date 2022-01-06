@@ -1,7 +1,7 @@
 #! /bin/bash
 
 WAIT=5
-EMCOCTL=/home/kube/emco/EMCONEW/emco-base/bin/emcoctl/emcoctl
+EMCOCTL=emcoctl
 
 
 function check_status() {
@@ -31,14 +31,15 @@ ${EMCOCTL} --config emco-cfg.yaml delete -f mecapp_deploy.yaml -v mec_values.yam
 sleep 1
 ${EMCOCTL} --config emco-cfg.yaml delete -f mecapp_deploy.yaml -v mec_values.yaml
 
-${EMCOCTL} --config emco-cfg.yaml delete -f prio_slice1_deploy.yaml -v mec_values.yaml -w 45
+${EMCOCTL} --config emco-cfg.yaml delete -f prio_slice1_deploy.yaml -v mec_values.yaml -w 80
 sleep 1
 ${EMCOCTL} --config emco-cfg.yaml delete -f prio_slice1_deploy.yaml -v mec_values.yaml -w $WAIT
+sleep 20
 
 ${EMCOCTL} --config emco-cfg.yaml delete -f logical_cloud.yaml -v mec_values.yaml -w $WAIT
 sleep 1
 ${EMCOCTL} --config emco-cfg.yaml delete -f logical_cloud.yaml -v mec_values.yaml -w $WAIT
-
+sleep 10
 
 ${EMCOCTL} --config emco-cfg.yaml delete -f mecapp_prereq.yaml -v mec_values.yaml -w $WAIT
 ${EMCOCTL} --config emco-cfg.yaml delete -f mecapp_prereq.yaml -v mec_values.yaml

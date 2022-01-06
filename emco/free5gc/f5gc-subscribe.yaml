@@ -81,6 +81,7 @@ spec:
       "image.tag": {{.httpCRDTag}}
   - app: f5gc-subscriber
     values:
+      "url": "http://f5gc-webui.slice.f5gnetslice.com:5000"
       "plmnid": "20893"
       "imsiStart": "208930000000003"
       "numUsers": "1"
