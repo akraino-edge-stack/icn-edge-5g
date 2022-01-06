@@ -11,4 +11,4 @@ data:
     configuration:
       mongodb:
         name: free5gc
-        url: mongodb://f5gc-mongodb:27017
+        url: {{ .Values.mongodb.url }}

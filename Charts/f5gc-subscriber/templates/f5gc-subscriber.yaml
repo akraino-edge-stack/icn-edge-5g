@@ -6,6 +6,7 @@ metadata:
   name: mobilesubscriber-sample-{{ $i }}
 spec:
   # Add fields here
+  url: {{ $.Values.url | quote }}
   name: sub1-{{ $i }}
   plmnid: {{ $.Values.plmnid | quote }}
   supi: {{ $imsi | quote }}

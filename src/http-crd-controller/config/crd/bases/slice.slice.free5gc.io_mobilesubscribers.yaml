@@ -46,8 +46,6 @@ spec:
                 - EAP_AKA_PRIME
                 type: string
               name:
-                description: 'Important: Run "make" to regenerate code after modifying
-                  this file'
                 type: string
               opType:
                 default: OP
@@ -112,6 +110,10 @@ spec:
                 type: array
               supi:
                 default: "208930000000003"
+                type: string
+              url:
+                description: 'Important: Run "make" to regenerate code after modifying
+                  this file'
                 type: string
             type: object
           status:

@@ -60,6 +60,7 @@ type SNSSAIConfig struct {
 // MobilesubscriberSpec defines the desired state of Mobilesubscriber
 type MobilesubscriberSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
+	URL    string `json:"url,omitempty"`
 	Name   string `json:"name,omitempty"`
 	PLMNId string `json:"plmnid,omitempty"`
 	// +kubebuilder:default="208930000000003"

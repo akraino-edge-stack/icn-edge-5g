@@ -35,7 +35,12 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 80
+  port: 5000
+  nodePort: 32050
+
+
+mongodb:
+  url: mongodb://f5gc-mongodb:27017
 
 ingress:
   enabled: false

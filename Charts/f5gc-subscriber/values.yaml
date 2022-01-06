@@ -2,6 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+url: http://f5gc-webui:5000
 plmnid: "20893"
 imsiStart: "208930000000003"
 numUsers: "1"

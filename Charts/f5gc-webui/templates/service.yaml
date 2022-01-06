@@ -5,11 +5,14 @@ metadata:
     app: f5gc-webui
   name: f5gc-webui
 spec:
-  type: NodePort
+  type: {{ .Values.service.type }}
   ports:
   - name: f5gc-webui
-    port: 5000
+    port: {{ .Values.service.port }}
     protocol: TCP
-    targetPort: 5000
+    targetPort: {{ .Values.service.port }}
+{{- if eq .Values.service.type "NodePort" }}
+    nodePort: {{ .Values.service.nodePort }}
+{{- end }}
   selector:
     app: f5gc-webui

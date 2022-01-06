@@ -321,9 +321,10 @@ func putSubStruct(sub *slicev1alpha1.Mobilesubscriber) SubsData {
 	return subsData
 }
 
-func getSubscribers() ([]SubsData, error) {
+func getSubscribers(url string) ([]SubsData, error) {
 	client := &http.Client{}
-	subURL := "http://f5gc-webui.default.svc.cluster.local:5000/api/subscriber"
+	subURL := url + "/api/subscriber"
+	log.Printf("subURL=%s\n", subURL)
 	req, err := http.NewRequest(http.MethodGet, subURL, nil)
 	if err != nil {
 		log.Println("Error in NewRequest...")
@@ -352,7 +353,9 @@ func putSubscriber(sub *slicev1alpha1.Mobilesubscriber) error {
 		log.Println("Error in Marshaling...")
 		return err
 	}
-	subURL := "http://f5gc-webui.default.svc.cluster.local:5000/api/subscriber/imsi-" + sub.Spec.SUPI + "/" + sub.Spec.PLMNId
+
+	subURL := sub.Spec.URL + "/api/subscriber/imsi-" + sub.Spec.SUPI + "/" + sub.Spec.PLMNId
+	log.Printf("subURL=%s\n", subURL)
 	req, err := http.NewRequest(http.MethodPut, subURL, bytes.NewBuffer(json))
 	if err != nil {
 		log.Println("Error in NewRequest...")
@@ -371,7 +374,8 @@ func putSubscriber(sub *slicev1alpha1.Mobilesubscriber) error {
 
 func delSubscriber(sub *slicev1alpha1.Mobilesubscriber) error {
 	client := &http.Client{}
-	subURL := "http://f5gc-webui.default.svc.cluster.local:5000/api/subscriber/imsi-" + sub.Spec.SUPI + "/" + sub.Spec.PLMNId
+	//	subURL := "http://f5gc-webui.default.svc.cluster.local:5000/api/subscriber/imsi-" + sub.Spec.SUPI + "/" + sub.Spec.PLMNId
+	subURL := sub.Spec.URL + "/api/subscriber/imsi-" + sub.Spec.SUPI + "/" + sub.Spec.PLMNId
 	req, err := http.NewRequest(http.MethodDelete, subURL, nil)
 	if err != nil {
 		log.Println("Error in NewRequest...")
@@ -475,7 +479,7 @@ func (r *MobilesubscriberReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	if delete_timestamp.IsZero() {
 		log.Info("Creating mobilesubscriber")
 		putSubscriber(msub)
-		getSubscribers()
+		getSubscribers(msub.Spec.URL)
 		finalizers := getFinalizers(instance)
 		if !containsString(finalizers, finalizerName) {
 			appendFinalizer(instance, finalizerName)

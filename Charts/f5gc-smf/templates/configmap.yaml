@@ -96,7 +96,7 @@ data:
     #           - permit out ip from 60.60.0.1 8080 to any
 
   free5GC.conf: |
-    db_uri: {{ .Values.configuration.mongodb.url }}/free5GC
+    db_uri: {{ .Values.mongodb.url }}/free5GC
     #all logging levels
     #panic
     #fatal
