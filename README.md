@@ -8,8 +8,9 @@
 
 ****Contents:****
 * Charts  - Helm Charts for the Free5G core NFs and other components.
+* profiles- contains the application profile (override values)
 * docs    - Documents for test setup, prerequisites, slice deployment etc.,
-* emco    - EMCO scripts that are used to setup the required software and deploy the slices.
+* emco    - EMCO scripts and artifacts that are used to setup the required software and deploy the slices.
 * scripts - kubectl scripts for slice deployment (used for testing only).
 * src     - Sources for the Free5gc subscriber controller etc.,
 

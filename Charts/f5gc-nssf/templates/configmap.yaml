@@ -41,12 +41,13 @@ data:
       nsiList:
         - snssai:
             sst: 1
+            sd: 010203
           nsiInformationList:
             - nrfId: {{ .Values.nssaiNrfUri1 }}/nnrf-nfm/v1/nf-instances
               nsiId: 10
         - snssai:
             sst: 1
-            sd: 1
+            sd: 112233
           nsiInformationList:
             - nrfId: {{ .Values.nssaiNrfUri2 }}/nnrf-nfm/v1/nf-instances
               nsiId: 11

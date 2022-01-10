@@ -1,7 +1,7 @@
 
 {{- range $index, $cloud := .lclouds }}
 ---
-#create admin logical cloud
+#create logical cloud
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/logical-clouds
@@ -40,7 +40,7 @@ spec:
   - create
 
 ---
-#add privileged cluster-wide user permission
+#add cluster-wide user permission
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/logical-clouds/{{ $cloud.name }}/user-permissions

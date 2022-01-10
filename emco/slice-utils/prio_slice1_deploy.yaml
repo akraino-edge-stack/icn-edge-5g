@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2020 Intel Corporation
-#creating vfw composite app entry
 
 {{- range $index, $slice := .prioslice }}
 ---
@@ -14,7 +13,7 @@ spec:
 
 {{- range $index, $app := $slice.cPlane.Apps }}
 ---
-#adding packetgen app to the composite app
+#adding app to the composite app
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName}}/{{ $slice.compAppVer }}/apps
@@ -26,7 +25,7 @@ file:
 {{- end }}
 {{- range $index, $app := $slice.dPlane.Apps }}
 ---
-#adding packetgen app to the composite app
+#adding app to the composite app
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/apps
@@ -37,7 +36,7 @@ file:
 
 {{- end }}
 ---
-#creating vfw composite profile entry
+#creating composite profile entry
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName}}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/composite-profiles
@@ -46,7 +45,7 @@ metadata :
 
 {{- range $index, $app := $slice.cPlane.Apps }}
 ---
-#adding packetgen app profiles to the composite profile
+#adding app profiles to the composite profile
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/composite-profiles/{{ $slice.compProfileName }}/profiles
@@ -60,7 +59,7 @@ file:
 {{- end }}
 {{- range $index, $app := $slice.dPlane.Apps }}
 ---
-#adding packetgen app profiles to the composite profile
+#adding app profiles to the composite profile
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/composite-profiles/{{ $slice.compProfileName }}/profiles
@@ -123,7 +122,7 @@ spec:
 
 {{- range $index, $app := $slice.cPlane.Apps }}
 ---
-#add the packetgen app placement intent to the generic placement intent
+#add the app placement intent to the generic placement intent
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-placement-intents/{{ $slice.compAppName }}-placement-intent/app-intents
@@ -139,7 +138,7 @@ spec:
 {{- end }}
 {{- range $index, $app := $slice.dPlane.Apps }}
 ---
-#add the packetgen app placement intent to the generic placement intent
+#add the app placement intent to the generic placement intent
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-placement-intents/{{ $slice.compAppName }}-placement-intent/app-intents
@@ -187,7 +186,7 @@ spec:
 
 {{- end }}
 ---
-#create the generic placement intent
+#create the generic action intent
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents
@@ -196,7 +195,7 @@ metadata:
 
 {{- range $index, $app := $slice.cPlane.Apps }}
 ---
-#create the generic placement intent
+#create the generic action intent resources
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources
@@ -210,10 +209,10 @@ spec:
     kind: Service
     name: {{ $app.name }}
 file:
-  info.json
+  {{ $.defaultJson }}
 
 ---
-#create the generic action intents
+#create the generic action intents customizations
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources/resource-{{ $app.name }}-service/customizations
@@ -238,12 +237,12 @@ spec:
     }
   ]
 files:
-  - info.json
+  - {{ $.defaultJson }}
 
 {{- end }}
 {{- range $index, $app := $slice.dPlane.Apps }}
 ---
-#create the generic placement intent
+#create the generic action intent resources
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources
@@ -257,10 +256,10 @@ spec:
     kind: Service
     name: {{ $app.name }}
 file:
-  info.json
+  {{ $.defaultJson }}
 
 ---
-#create the generic action intents
+#create the generic action intents customizations
 version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources/resource-{{ $app.name }}-service/customizations
@@ -285,7 +284,7 @@ spec:
     }
   ]
 files:
-  - info.json
+  - {{ $.defaultJson }}
 
 {{- end }}
 {{- range $index, $app := $slice.dependency }}

@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2020 Intel Corporation
-#creating vfw composite app entry
-
 ---
 version: emco/v2
 resourceContext:
@@ -12,7 +10,7 @@ spec:
   compositeAppVersion: v1
 
 ---
-#adding packetgen app to the composite app
+#adding app to the composite app
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/apps
@@ -32,7 +30,7 @@ file:
 
 ---
 
-#creating vfw composite profile entry
+#creating composite profile entry
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/composite-profiles
@@ -40,7 +38,7 @@ metadata :
   name: {{.CompProviderProfileName}}
 
 ---
-#adding packetgen app profiles to the composite profile
+#adding app profiles to the composite profile
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/composite-profiles/{{.CompProviderProfileName}}/profiles
@@ -52,7 +50,7 @@ file:
   {{.f5gcHelmProf}}/{{.DefaultProfileFw}}
 
 ---
-#adding packetgen app profiles to the composite profile
+#adding app profiles to the composite profile
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/composite-profiles/{{.CompProviderProfileName}}/profiles
@@ -112,7 +110,7 @@ spec:
   logicalCloud: {{.AdminCloud}}
 
 ---
-#add the packetgen app placement intent to the generic placement intent
+#add the app placement intent to the generic placement intent
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-placement-intents/provider-placement-intent/app-intents
@@ -147,7 +145,7 @@ metadata:
   name: generick8s_intent
 
 ---
-#create the generic placement intent
+#create the generic action intent resources
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents/generick8s_intent/resources
@@ -161,10 +159,10 @@ spec:
     kind: Deployment
     name: r1-external-dns
 file:
-  info.json
+  {{ .defaultJson }}
 
 ---
-#create the generic action intents
+#create the generic action intents customizations
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents/generick8s_intent/resources/resource-external-dns-deployment/customizations
@@ -187,7 +185,7 @@ spec:
     }
   ]
 files:
-  - info.json
+  - {{ .defaultJson }}
 
 ---
 #create the generic action intents
@@ -213,11 +211,11 @@ spec:
     }
   ]
 files:
-  - info.json
+  - {{ .defaultJson }}
 
 
 ---
-#create the generic placement intent
+#create the generic action intent
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeProviderAppName}}/v1/deployment-intent-groups/{{.ProviderDepIntGrpName}}/generic-k8s-intents/generick8s_intent/resources
@@ -231,7 +229,7 @@ spec:
     kind: ConfigMap
     name: r1-metallb
 file:
-  info.json
+  {{ .defaultJson }}
 
 ---
 #create the generic action intents
@@ -258,7 +256,7 @@ spec:
   ]
 
 files:
-  - info.json
+  - {{ .defaultJson }} 
 
 ---
 #create the generic action intents
@@ -284,7 +282,7 @@ spec:
     }
   ]
 files:
-  - info.json
+  - {{ .defaultJson }}
 
 ---
 

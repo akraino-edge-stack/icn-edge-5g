@@ -1,0 +1,238 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+{{- range $index, $slice := .common }}
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps
+metadata :
+  name: {{ $slice.compAppName}}
+spec:
+  compositeAppVersion: {{ $slice.compAppVer }}
+
+{{- range $index, $app := $slice.Apps }}
+---
+#adding app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/apps
+metadata :
+  name: {{ $app.name }}
+file:
+  {{ $.ChartHelmSrc }}/{{ $app.helmApp }}
+
+{{- end }}
+---
+#creating composite profile entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName}}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/composite-profiles
+metadata :
+  name: {{ $slice.compProfileName}}
+
+{{- range $index, $app := $slice.Apps }}
+---
+#adding app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/composite-profiles/{{ $slice.compProfileName }}/profiles
+metadata :
+  name: {{ $app.profileName }}
+spec:
+  app: {{ $app.name }}
+file:
+  {{ $.f5gcHelmProf }}/{{ $app.profileFw }}
+
+{{- end }}
+---
+#create deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups
+metadata :
+  name: {{ $slice.depIntGrpName }}
+spec:
+  compositeProfile: {{ $slice.compProfileName }}
+  version: r1
+  logicalCloud: {{ $slice.lCloud }}
+  overrideValues:
+{{- range $index, $app := $slice.Apps }}
+  - app: {{ $app.name }}
+    values:
+{{- range $key, $val := $app.values }}
+      {{ $key }}: "{{ $val }}"
+{{- end }}
+{{- end }}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/intents
+metadata :
+  name: {{ $slice.compAppName }}-deployment-intent
+spec:
+  intent:
+    genericPlacementIntent: {{ $slice.compAppName }}-placement-intent
+{{- if $slice.ovnIntent }}
+    ovnaction: {{ $slice.compAppName }}-ovnaction-intent
+{{- end }}
+{{- if $slice.gacIntent }}
+    gac: generick8s_intent
+{{- end }}
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-placement-intents
+metadata :
+  name: {{ $slice.compAppName }}-placement-intent
+spec:
+  logicalCloud: {{ $slice.lCloud }}
+
+{{- range $index, $app := $slice.Apps }}
+---
+#add the app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-placement-intents/{{ $slice.compAppName }}-placement-intent/app-intents
+metadata:
+  name: {{ $app.name }}-placement-intent
+spec:
+  app: {{ $app.name }}
+  intent:
+    allOf:
+{{- range $index, $int := $app.cluster }}
+    - clusterProvider: {{ $int.provider }}
+      clusterLabel: {{ $int.label }}
+{{- end }}
+{{- end }}
+{{- if $slice.ovnIntent }}
+---
+#creating ovn network intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/network-controller-intent
+metadata :
+  name: {{ $slice.compAppName }}-ovnaction-intent
+
+{{- range $index, $ovn := $slice.ovnNetworks }}
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/network-controller-intent/{{ $slice.compAppName }}-ovnaction-intent/workload-intents
+metadata :
+  name: {{ $ovn.app }}_workload_intent
+spec:
+  app: {{ $ovn.app }}
+  workloadResource: r1-{{ $ovn.app }}
+  type: {{ $ovn.appType }}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/network-controller-intent/{{ $slice.compAppName }}-ovnaction-intent/workload-intents/{{ $ovn.app }}_workload_intent/interfaces
+metadata :
+  name: {{ $ovn.app }}-{{ $ovn.nwName }}-if
+spec:
+  interface: {{ $ovn.ifName }}
+  name: {{ $ovn.nwName }}
+  defaultGateway: "{{ $ovn.defaultGateway }}"
+  ipAddress: {{ $ovn.ipAddress }}
+
+{{- end }}
+{{- end }}
+{{- if $slice.gacIntent }}
+---
+#create the generic action intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents
+metadata:
+  name: generick8s_intent
+
+{{- range $index, $app := $slice.Apps }}
+{{- range $sid, $gac := $app.gac }}
+---
+#create the generic action intent resources
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources
+metadata:
+  name: resource-{{ $app.name }}-{{ $gac.resource.kind }}
+spec:
+  app: {{ $app.name }}
+  newObject: "{{ $gac.new }}"
+  resourceGVK:
+    apiVersion: {{ $gac.resource.api }}
+    kind: {{ $gac.resource.kind }}
+    name: {{ $gac.resource.name }}
+file:
+{{- if eq $gac.new "true" }}
+  {{ $gac.resFile }}
+{{- else }}
+  {{ $.defaultJson }}
+{{- end }}
+
+---
+#create the generic action intents customizations
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources/resource-{{ $app.name }}-{{ $gac.resource.kind }}/customizations
+metadata :
+  name: {{ $app.name }}-{{ $gac.resource.kind }}-customization
+spec:
+  clusterSpecific: "{{ $gac.clusterSpecific }}"
+  clusterInfo:
+{{- if eq $gac.clusterSpecific "false" }}
+    scope: Label
+    clusterProvider: {{ (index $app.cluster 0).provider }}
+    clusterName: "dummy"
+    clusterLabel: {{ (index $app.cluster 0).label }}
+    mode: allow
+{{- else }}
+    scope: {{ $gac.cluster.scope }}
+    clusterProvider: {{ $gac.cluster.provider }}
+    clusterName: {{ $gac.cluster.name }}
+    clusterLabel: {{ $gac.cluster.label }}
+    mode: allow
+{{- end }}
+{{- if $gac.type }}
+  patchType: {{ $gac.type }}
+  patchJson: {{ $gac.patch }}
+{{- end }}
+files:
+  - {{ $.defaultJson }}
+
+{{- end }}
+{{- end }}
+{{- end }}
+{{- range $index, $app := $slice.dependency }}
+{{- range $index, $dep := $app.depApps }}
+---
+#adding dependency to the app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/apps/{{ $app.app }}/dependency
+metadata :
+  name: {{ $dep.app }}
+spec:
+  app: {{ $dep.app }}
+  opStatus: {{ $dep.op }}
+  wait: {{ $dep.wait }}
+
+{{- end }}
+{{- end }}
+---
+
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/approve
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/instantiate
+
+{{- end }}

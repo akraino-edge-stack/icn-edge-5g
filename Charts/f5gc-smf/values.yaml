@@ -76,8 +76,8 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 32502
-  nodePort: 32502
+  port: 32505
+  nodePort: 32505
 
 n4service:
   type: ClusterIP

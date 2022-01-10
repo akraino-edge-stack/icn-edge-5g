@@ -35,8 +35,8 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 32509
-  nodePort: 32509
+  port: 32508
+  nodePort: 32508
 
 configuration:
   sbi:

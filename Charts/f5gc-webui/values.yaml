@@ -36,7 +36,7 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 5000
-  nodePort: 32050
+  nodePort: 32509
 
 
 mongodb:
