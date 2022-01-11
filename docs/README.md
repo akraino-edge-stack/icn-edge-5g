@@ -1,6 +1,7 @@
 **5G Network Slicing Deployment**
 
 ***1.0 Prerequisites***
+
 ****1.1 Test Setup****
 - Ensure the test setup is brought up and all the required components are installed.
 - Please refer to the [test_setup.md](test_setup.md) for details.
@@ -16,67 +17,109 @@
     * demp-nginx-rtmp: cd src/demo-nginx-rtmp and follow the [Readme.md](../src/demo-nginx-rtmp/README.md)
 
 ***2.0 Deployment of network slices using EMCO***
-- The slices are deployed from the cluster-A which has the EMCO installed.
+- The slices are deployed from the cluster-A which has the EMCO installed. The steps to deploy are as below,
+Go to the slice-utils folder, as all the scripts are run from here.
+```
+cd emco/slice-utils
+```
 
-****2.1 First Slice:****
-- The first slice is deployed in the default namespace. (this will be moved to its own namespace later)
-- the script "deploy_f5gc.sh" and the major functions are as below,
-    * deploys the monitor
-    * Create the required logical clouds.
-    * Deploys the free5gc NFs.
-    * Deploys the SDEWAN CRD Controller.
-    * Deploys the Free5gc subscriber controller and adds an entry to the data-base.
-Note: The parameters of the network slice NFs can be controlled by modifying the script.
+****2.1 Provider:****
+- This steps deploys the emco-monitor, external-dns, metallb and configures them properly (using GAC intents).
+- The script deploy_provider.sh is used to deploy as below,
 ```
-cd emco/free5gc
-./deploy_f5gc.sh
+./deploy_provider.sh install
 ```
-Here is the output of the above script
+The output of the above execution is as below,
 ```
-Deploying the Free5gc using EMCO...
+EMCO initializing...
 -----------------------------------------------------------------------
 Instantiating App: emco-monitor ...Done, successful.
 -----------------------------------------------------------------------
+Deploying the Provider using EMCO...
+Instantiating App: provider ...Done, successful.
+-----------------------------------------------------------------------
+```
+
+****2.2 Deploy Slice common Apps:****
+- Deploys the applications that are common / required for all the slices.
+- The applications deployed include: cert-manager, amf, nrf, nssf, mongodb, webui, sdewan crd, f5gc subscriber controller.
+- The script deploy_common_sliceapps.sh is used.
+```
+./deploy_common_sliceapps.sh install
+```
+The output is as below,
+```
+Deploying the slice common Apps using EMCO...
 Creating Logical Clouds ...
 Instantiating Logical Cloud: sdewan-manager ..Done, successful.
+Instantiating Logical Cloud: slice-common ..Done, successful.
 Instantiating Logical Cloud: cert-manager ..Done, successful.
 Instantiating Logical Cloud: httpcrd ..Done, successful.
 -----------------------------------------------------------------------
-Instantiating App: certificate-manager .....Done, successful.
------------------------------------------------------------------------
-Instantiating App: free5gc default slice_0 ..................Done, successful.
------------------------------------------------------------------------
+Instantiating App: certificate-manager ..Done, successful.
+Instantiating App: free5gc  common ..Done, successful.
 Instantiating App: sdewan-crd-controller ..Done, successful.
+Instantiating App: f5gc-subscriber-controller ..Done, successful.
 -----------------------------------------------------------------------
-Instantiating App: f5gc-subscriber-controller ...................Done, successful.
 ```
+
+****2.3 Deploy Slices:****
+- The slices are deployed in their own namespace.
+- The folders "slice-a" and "slice-b" contain the configfiles required to config the slices.
+- The scipt "deploy_slice is used. It takes the configfile as argument.
+- The script is invoked multiple times with different config files to create more slices.
+- To create the first slice (on slice-a namespace)
+```
+./deploy_slice.sh --configfile=../slice-a/slice-config install
+```
+The output for this command is as below,
+```
+namespace: slice-a
+Deploying the Slice NFs using EMCO...
+-----------------------------------------------------------------------
+Creating Logical Cloud slice-a ...
+Instantiating Logical Cloud: slice-a ..Done, successful.
+-----------------------------------------------------------------------
+Deploying a new slice on namespace slice-a...
+Instantiating App: free5gc prio slice-a ...............Done, successful.
+-----------------------------------------------------------------------
+```
+
+- To create the second slice (on slice-b namespace)
+```
+./deploy_slice.sh --configfile=../slice-b/slice-config install
+```
+The output for this command is as below,
+```
+namespace: slice-b
+Deploying the Slice NFs using EMCO...
+-----------------------------------------------------------------------
+Creating Logical Cloud slice-b ...
+Instantiating Logical Cloud: slice-b ..Done, successful.
+-----------------------------------------------------------------------
+Deploying a new slice on namespace slice-b...
+Instantiating App: free5gc prio slice-b ......................Done, successful.
+-----------------------------------------------------------------------
+```
+
 The slice deployment is depicted as below,
 <img src=slice_NF_Deployment.png>
 
-****2.2 Second Slice:****
-- The second slice is deployed in the slice namespace. 
-- the script "deploy_f5gc.sh" and the major functions are as below,
-    * Create the required logical clouds.
-    * Deploys the free5gc NFs for the second slice in the slice namespace.
-    * Deploys the demo MEC Application.
-    * Installs the traffic redirection rules to redirect the traffic to the local demo MEC application.
-Note: The parameters of the network slice NFs can be controlled by modifying the script.
+****2.4 Deploy Demo MEC Application:****
+- The nginx-rtmp streaming is used as a demo MEC application. 
+- The script "deploy_mecapps.sh" is used.
+- It deploys the demo-nginx-rtmp and also installs the CRD for traffic redirection to the MEC application.
+- It takes the slice namespace as the argument on which the app is deployed.
+- To deploy the app on the slice-b namespace,
 ```
-./deploy_slice_mecapp.sh
+./deploy_mecapp.sh --namespace=slice-b install
 ```
-
-The output of the above is as below:
+and the output is as below,
 ```
+namespace: slice-b
 Deploying the MEC App using EMCO...
------------------------------------------------------------------------
-Creating Logical Clouds ...
-Instantiating Logical Cloud: prioslice ..Done, successful.
------------------------------------------------------------------------
-Deploying a new slice ...
-Instantiating App: free5gc prio slice_1 ..........Done, successful.
------------------------------------------------------------------------
 Deploying mecApp and Installing Traffic Steering Rules ...
-Instantiating App: MEC App slice_1 with Traffic steering Rules ..Done, successful.
+Instantiating App: MEC App slice-b with Traffic steering Rules ..Done, successful.
 -----------------------------------------------------------------------
 ```
 

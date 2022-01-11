@@ -10,6 +10,7 @@
     * Cluster-C : Target cluster, single node cluster, used for NRF, UDR, UDM, NSSF, f5gc subscriber controller etc.,
     * VM-Router : Linux VM configured to work as a router. It also has power-DNS server installed.
     * UE-RAN Sim: Linux VM where we will run the UE-RAN simulator to connect to the Free5GC core NFs.
+- All the VMs are installed with operating system : Ubuntu 20.04.2 LTS
 
 ***2. Software Components***
 
@@ -61,20 +62,24 @@ Note: Any other DNS server supported by external-DNS can be used.
 - DNS entries for external services can also be added to the server.
 - Refer: [external-dns](https://github.com/kubernetes-sigs/external-dns)
 Note: The helm chart for the external-dns is also available in the Charts folder of this repo.
-- Installation steps when using power-DNS server is as below,
+- The external-dns is now deployed automatically from EMCO cluster using the deploy_provider.sh.
+- Manual Installation steps when using power-DNS server is as below,
 ```
     helm repo add bitnami https://charts.bitnami.com/bitnami
     helm pull bitnami/external-dns
     cd external-dns
     helm install --set provider=pdns --set pdns.apiUrl=http://<ip_address_of_vm_router> --set pdns.apiKey=<api_key: NETSLICING> --set txtOwnerId=<owner_id> --set logLevel=debug --set interval=30s --set policy=sync external-dns ./
 ```
+Note: The above manual steps are not required when using the deploy_provider.sh script.
 
 ****2.5 Metallb (LoadBalancer):****
 - load-balancer implementation for bare metal Kubernetes clusters.
 - Deployed on Target clusters (Cluster-B and Cluster-C in the setup above).
 - Refer: [Metallb](https://github.com/metallb/metallb)
+-  The metallb is now deployed automatically from EMCO cluster using the deploy_provider.sh. 
+- This script also has the proper GAC intents to create / modify the configuration.
 
-Metallb Deployment Values file (metallb_values.yaml) used for helm deployment:
+Metallb Deployment Values file (metallb_values.yaml) used for manual helm deployment:
 ```
 configInline:
   address-pools:
@@ -91,6 +96,8 @@ To deploy:
     cd metallb/
     helm install metallb ./ -f ../<path_to_values_file metallb_values.yaml>
 ```
+Note: The above manual steps are not required while using the deploy_provider.sh script during deployment.
+
 ****2.6 set CoreDNS to also use the powerDNS server for DNS resolution****
 - Modify the coredns configmap to also use the powerDNS to resolve the FQDNs.
 - This is needed on target clusters B and C.

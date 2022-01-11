@@ -2,10 +2,11 @@
 
 source common_helper.sh
 
-slice_ns="slice-a"
+slice_ns="dummy"
+configFile="dummy"
 
 #options
-if ! options=$(getopt -o n: -l namespace: -- "$@")
+if ! options=$(getopt -o f:n: -l configfile:,namespace: -- "$@")
 then
     # something went wrong, getopt will put out an error message for us
     exit 1
@@ -15,6 +16,7 @@ while [ $# -gt 0 ]
 do
     case $1 in
     -n|--namespace) slice_ns="$2" ; shift;;
+    -f|--configfile) configFile="$2" ; shift;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
     (*) break;;
@@ -23,6 +25,8 @@ do
 done
 
 action=$1
+source ${configFile}
+
 projName="proj5-${slice_ns}"
 compAppName="compositefree5gc-${slice_ns}"
 compProfName="free5gc-${slice_ns}-profile"
@@ -31,7 +35,7 @@ containerRegistry=${DOCKER_REPO}
 f5gcTag="3.0.5"
 cPlaneNode="kube-four"
 dPlaneNode="kube-three"
-serviceType="LoadBalancer"
+#serviceType="LoadBalancer"
 Domain="f5gnetslice.com"
 upfName="f5gc-upf"
 smfName="f5gc-smf"
@@ -68,35 +72,10 @@ else
 	exit 3
 fi
 
-udmServicePort="32503"
-udrServicePort="32504"
-smfServicePort="32505"
-pcfServicePort="32507"
-ausfServicePort="32508"
-NRFPort="32510"
-
 if [ ${slice_ns} == "slice-a" ]; then
 	echo "namespace: slice-a"
-	upfN3=172.16.34.3
-	ueSubNet=172.16.1.0/24
-	nssf_sst="1"
-	nssf_sd="010203"
-	n4NodePort="32705"
 elif [ ${slice_ns} == "slice-b" ]; then
 	echo "namespace: slice-b"
-	upfN3=172.16.34.4
-	ueSubNet=172.16.2.0/24
-	nssf_sst="2"
-	nssf_sd="010203"
-	n4NodePort="32706"
-	if [ ${serviceType} == "NodePort" ]; then
-		udmServicePort="32513"
-		udrServicePort="32514"
-		smfServicePort="32515"
-		pcfServicePort="32517"
-		ausfServicePort="32518"
-		NRFPort="32520"
-	fi
 else
 	echo "Only two slices on ns slice-a and slice-b supported"
 	exit 3
