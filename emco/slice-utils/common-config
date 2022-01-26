@@ -1,0 +1,14 @@
+
+containerRegistry=${DOCKER_REPO}
+metallbMode=L2
+
+f5gcTag="3.0.6"
+cPlaneNode="kube-four"
+dPlaneNode="kube-three"
+slice_ns="slice"
+slice0_ns="slice-a"
+slice1_ns="slice-b"
+serviceType="LoadBalancer"
+Domain="f5gnetslice.com"
+
+externalAppServerIP="192.168.100.100"

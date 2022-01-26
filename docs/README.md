@@ -7,8 +7,9 @@
 - Please refer to the [test_setup.md](test_setup.md) for details.
 
 ****1.2 Free5GC Images****
-- The network slicing has been tested using Free5GC NFs from version 3.0.5.
-- To create the Free5gc V3.0.5 images refer to the [free5g.md](free5g.md) for details.
+- The network slicing has been tested using Free5GC NFs from version 3.0.6.
+- To create the Free5gc V3.0.6 images refer to the [free5g.md](free5g.md) for details.
+- Push the images to the Docker Registry (DOCKER_REPO).
 
 ****1.3 Subscriber Controller and Demo App Images****
 - A Free5gc subscriber controller and a demo MEC app (demo-nginx-rtmp) is added in the src folder.
@@ -17,14 +18,30 @@
     * demp-nginx-rtmp: cd src/demo-nginx-rtmp and follow the [Readme.md](../src/demo-nginx-rtmp/README.md)
 
 ***2.0 Deployment of network slices using EMCO***
-- The slices are deployed from the cluster-A which has the EMCO installed. The steps to deploy are as below,
-Go to the slice-utils folder, as all the scripts are run from here.
+- The slices are deployed from the cluster-A which has the EMCO installed. 
+
+The steps to deploy are as below,
+
+- Set up the following environment variables. Note that the value for the
+container registry URL  must end with a `/`.
+
+```
+export DOCKER_REPO=${container_registry_url}/
+export HTTP_PROXY=${http_proxy}
+export HTTPS_PROXY=${https_proxy}
+
+```
+
+- Go to the slice-utils folder, as all the scripts are run from here.
 ```
 cd emco/slice-utils
 ```
 
+
 ****2.1 Provider:****
-- This steps deploys the emco-monitor, external-dns, metallb and configures them properly (using GAC intents).
+- This step deploys the emco-monitor, external-dns, metallb and configures them properly (using GAC intents).
+- The configuration for the provider can be modified in the files : "common-config" and "deploy_provider.sh"
+- The metallb mode can be modified in the "common-config" file in the variable "metallbMode".
 - The script deploy_provider.sh is used to deploy as below,
 ```
 ./deploy_provider.sh install
@@ -43,6 +60,7 @@ Instantiating App: provider ...Done, successful.
 ****2.2 Deploy Slice common Apps:****
 - Deploys the applications that are common / required for all the slices.
 - The applications deployed include: cert-manager, amf, nrf, nssf, mongodb, webui, sdewan crd, f5gc subscriber controller.
+- The configuration for the applications can be modified in the files : "common-config" and "deploy_common_sliceapps.sh"
 - The script deploy_common_sliceapps.sh is used.
 ```
 ./deploy_common_sliceapps.sh install

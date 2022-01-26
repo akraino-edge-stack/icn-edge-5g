@@ -1,5 +1,6 @@
 #! /bin/bash
 
+source common-config
 source common_helper.sh
 
 if [ $# -lt 1 ]; then
@@ -13,9 +14,8 @@ projName="proj-emco-init"
 compAppName="compositeprovider"
 compProfName="provider-profile"
 depIntGroup="provider-intent-group"
-containerRegistry=${DOCKER_REPO}
 
-logFile="emco-log-provider"
+logFile="emco-provider.log"
 valuesFile="provider-config-values.yaml"
 scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 emcodir=$(dirname ${scriptDir})
@@ -59,6 +59,42 @@ ProviderDepIntGrpName: ${depIntGroup}-provider
 CompProviderProfileName: ${compProfName}-provider
 HelmAppDNS: external-dns.tgz
 HelmAppMetal: metallb.tgz
+metallbProtocol: ${metallbMode}
+metallbL2Config: 
+  clusterA: |-
+    [
+      {
+        "op": "replace",
+        "path": "/data/config",
+        "value": "  address-pools:\n  - addresses:\n    - 192.168.20.220-192.168.20.250\n    name: default\n    protocol: layer2\n"
+      }
+    ]
+  clusterB: |-
+    [
+      {
+        "op": "replace",
+        "path": "/data/config",
+        "value": "  address-pools:\n  - addresses:\n    - 192.168.30.220-192.168.30.250\n    name: default\n    protocol: layer2\n"
+      }
+    ]
+ 
+metallbL3Config: 
+  clusterA: |-
+    [
+      {
+        "op": "replace",
+        "path": "/data/config",
+        "value": "  peers:\n  - peer-address: 192.168.20.50\n    peer-asn: 3000\n    my-asn: 5000\n  address-pools:\n  - name: default\n    protocol: bgp\n    addresses:\n    - 192.178.20.0/24\n"
+      }
+    ]
+  clusterB: |-
+    [
+      {
+        "op": "replace",
+        "path": "/data/config",
+        "value": "  peers:\n  - peer-address: 192.168.20.50\n    peer-asn: 3000\n    my-asn: 4000\n  address-pools:\n  - name: default\n    protocol: bgp\n    addresses:\n    - 192.178.10.0/24\n"
+      }
+    ]
 
 defaultJson: ${emcodir}/emco-init/default.json
 DefaultProfileFw: f5gc-default-pr.tgz
@@ -87,6 +123,7 @@ deploy_provider_apps () {
 	echo "Deploying the Provider using EMCO..."
 	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/deploy_edns_metallb.yaml -v ${valuesFile} &>> ${logFile}
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/composite-apps/${compAppName}-provider/v1/deployment-intent-groups/${depIntGroup}-provider/status?type=cluster" "App: provider" 20
+	sleep 5
 	echo "-----------------------------------------------------------------------"
 }
 
@@ -99,7 +136,7 @@ uninstall_provider_apps () {
 }
 
 if [ $action == "install" ]; then
-	generate_emco_cfg ${hostIP} ./emco-cfg.yaml
+	generate_emco_cfg ${hostIP} ${emcoCFGFile}
 	tar_charts ${emcodir}/../Charts
 	create_provider_values
 	deploy_provider_apps

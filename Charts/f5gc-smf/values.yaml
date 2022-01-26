@@ -13,8 +13,11 @@ sNssaiInfos:
     sst: 1
     sd: "010203"
     dnnInfos:
-      dnn: internet
-      ueSubnet: 172.16.1.0/24
+      - dnn: internet
+        dns:
+          ipv4: 8.8.8.8
+
+#      ueSubnet: 172.16.1.0/24
 
 userplane_information:
   up_nodes:
@@ -31,11 +34,15 @@ userplane_information:
             sd: "010203"
           dnnUpfInfoList:
             - dnn: internet
+              pools:
+                - cidr: "172.16.1.0/24"
         - sNssai:
             sst: 1
-            sd: 10203
+            sd: "112233"
           dnnUpfInfoList:
             - dnn: internet
+              pools: 
+                - cidr: "172.16.1.0/24"
       interfaces:
         - interfaceType: N3
           endpoints:

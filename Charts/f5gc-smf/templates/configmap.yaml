@@ -5,7 +5,7 @@ metadata:
 data:
   smfcfg.conf: |
     info:
-      version: 1.0.0
+      version: 1.0.2
       description: AMF initial local configuration
     
     configuration:
@@ -31,7 +31,6 @@ data:
               dns:
                 ipv4: 8.8.8.8
                 ipv6: 2001:4860:4860::8888
-              ueSubnet: {{ .Values.sNssaiInfos.sNssai.dnnInfos.ueSubnet }}
         - sNssai:
             sst: {{ .Values.sNssaiInfos.sNssai.sst }}
             sd: 112233
@@ -40,50 +39,52 @@ data:
               dns:
                 ipv4: 8.8.8.8
                 ipv6: 2001:4860:4860::8888
-              ueSubnet: {{ .Values.sNssaiInfos.sNssai.dnnInfos.ueSubnet }}
       pfcp:
 {{ .Values.pfcp | toYaml | indent 8 }}
       userplane_information:
 {{ .Values.userplane_information | toYaml | indent 8 }}
       nrfUri: {{ .Values.configuration.nrfUri }}
       ulcl: false
+      locality: area1
 
   uerouting.yaml: |
     info:
-      version: 1.0.0
+      version: 1.0.1
       description: Routing information for UE
     
     ueRoutingInfo:
-      - SUPI: imsi-2089300007487
-        AN: 10.200.200.101
-        PathList:
-          - DestinationIP: 60.60.0.101
-            DestinationPort: 8888
-            UPF: !!seq
-              - BranchingUPF
-              - AnchorUPF1
+      UE1: # Group Name
+        members:
+        - imsi-2089300007487 # Subscription Permanent Identifier of the UE
+        topology: # Network topology for this group (Uplink: A->B, Downlink: B->A)
+        # default path derived from this topology
+        # node name should be consistent with smfcfg.yaml
+          - A: gNB1
+            B: BranchingUPF
+          - A: BranchingUPF
+            B: AnchorUPF1
+        specificPath:
+          - dest: 60.60.0.103/32 # the destination IP address on Data Network (DN)
+            # the order of UPF nodes in this path. We use the UPF's name to represent each UPF node.
+            # The UPF's name should be consistent with smfcfg.yaml
+            path: [BranchingUPF, AnchorUPF2]
     
-          - DestinationIP: 60.60.0.103
-            DestinationPort: 9999
-            UPF: !!seq
-              - BranchingUPF
-              - AnchorUPF2
-    
-      - SUPI: imsi-2089300007486
-        AN: 10.200.200.102
-        PathList:
-          - DestinationIP: 10.0.0.10
-            DestinationPort: 8888
-            UPF: !!seq
-              - BranchingUPF
-              - AnchorUPF1
-    
-          - DestinationIP: 10.0.0.11
-            DestinationPort: 9999
-            UPF: !!seq
-              - BranchingUPF
-              - AnchorUPF2
-
+      UE2: # Group Name
+        members:
+        - imsi-2089300007486 # Subscription Permanent Identifier of the UE
+        topology: # Network topology for this group (Uplink: A->B, Downlink: B->A)
+        # default path derived from this topology
+        # node name should be consistent with smfcfg.yaml
+          - A: gNB1
+            B: BranchingUPF
+          - A: BranchingUPF
+            B: AnchorUPF1
+        specificPath:
+          - dest: 10.10.0.11/32 # the destination IP address on Data Network (DN)
+            # the order of UPF nodes in this path. We use the UPF's name to represent each UPF node.
+            # The UPF's name should be consistent with smfcfg.yaml
+            path: [BranchingUPF, AnchorUPF2]
+ 
     # routeProfile:
     #   MEC1:
     #     forwardingPolicyID: 10

@@ -247,13 +247,11 @@ spec:
     clusterLabel: {{.Cluster1Label}}
     mode: allow
   patchType: "json"
-  patchJson: [
-    {
-      "op": "replace",
-      "path": "/data/config",
-      "value": "  address-pools:\n  - addresses:\n    - 192.168.20.220-192.168.20.250\n    name: default\n    protocol: layer2\n"
-    }
-  ]
+{{- if eq .metallbProtocol "L2" }}
+  patchJson: {{.metallbL2Config.clusterA}}
+{{- else if eq .metallbProtocol "L3" }}
+  patchJson: {{.metallbL3Config.clusterA}}
+{{- end }}
 
 files:
   - {{ .defaultJson }} 
@@ -274,13 +272,11 @@ spec:
     clusterLabel: {{.Cluster2Label}}
     mode: allow
   patchType: "json"
-  patchJson: [
-    {
-      "op": "replace",
-      "path": "/data/config",
-      "value": "  address-pools:\n  - addresses:\n    - 192.168.30.220-192.168.30.250\n    name: default\n    protocol: layer2\n"
-    }
-  ]
+{{- if eq .metallbProtocol "L2" }}
+  patchJson: {{.metallbL2Config.clusterB}}
+{{- else if eq .metallbProtocol "L3" }}
+  patchJson: {{.metallbL3Config.clusterB}}
+{{- end }}
 files:
   - {{ .defaultJson }}
 

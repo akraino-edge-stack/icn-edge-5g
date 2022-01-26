@@ -1,5 +1,6 @@
 #! /bin/bash
 
+source common-config
 source common_helper.sh
 
 if [ $# -lt 1 ]; then
@@ -13,20 +14,11 @@ projName="proj4"
 compAppName="compositefree5gc"
 compProfName="free5gc-profile"
 depIntGroup="free5gc-deployment-intent-group"
-containerRegistry=${DOCKER_REPO}
-f5gcTag="3.0.5"
-cPlaneNode="kube-four"
-dPlaneNode="kube-three"
-slice_ns="slice"
-slice0_ns="slice-a"
-slice1_ns="slice-b"
-serviceType="LoadBalancer"
-Domain="f5gnetslice.com"
 NRFPort="32510"
-ExternalServerIP="192.168.100.100" #Update this value properly, this is used for creating external DNS entry.
+ExternalServerIP="${externalAppServerIP}" 
 
-logFile="emco-log-${slice_ns}-common"
-valuesFile=${slice_ns}-common-config-values.yaml
+logFile="emco-${slice_ns}-common.log"
+valuesFile="${slice_ns}-common-config-values.yaml"
 scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 emcodir=$(dirname ${scriptDir})
 emcoCFGFile=${scriptDir}/emco-cfg.yaml
@@ -140,6 +132,41 @@ lclouds:
         provider: edgeProvider
         cluster: clusterC
         label: sliceCLabelB
+
+ovn:
+  - provider: edgeProvider
+    cluster: clusterB
+    nodusPrimary: "true"
+    network:
+      - name: gtpunetwork
+        type: VLAN
+        ipv4:
+          subnet: 172.16.34.0/24
+          name: gtpu1
+          gateway: 172.16.34.1/24
+          exclude: 172.16.34.2 172.16.34.5..172.16.34.10
+        vlan:
+          id: "101"
+          interface: ens4
+          selector: specific
+          nodeLabel: 
+            - key: kubernetes.io/hostname
+              value: ${dPlaneNode}
+      - name: sctpnetwork
+        type: VLAN
+        ipv4:
+          subnet: 172.16.24.0/24
+          name: sctp1
+          gateway: 172.16.24.1/24
+          exclude: 172.16.24.2 172.16.24.5..172.16.24.10
+        vlan:
+          id: "102"
+          interface: ens4
+          selector: specific
+          nodeLabel: 
+            - key: kubernetes.io/hostname
+              value: ${dPlaneNode}
+
 
 common:
   - namespace: cert-manager
@@ -435,14 +462,14 @@ deploy_slice_common_apps () {
 	echo "Deploying the slice common Apps using EMCO..."
 	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/slice_common_prerequisites.yaml -v ${valuesFile} -w 2 &>> ${logFile}
 	echo "Creating Logical Clouds ..."
-	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/logical_cloud.yaml -v ${valuesFile} -w 2 &>> ${logFile}
+	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/logical_cloud.yaml -v ${valuesFile} -w 1 &>> ${logFile}
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/logical-clouds/sdewan-manager/status?type=cluster" "Logical Cloud: sdewan-manager" 20
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/logical-clouds/${slice_ns}-common/status?type=cluster" "Logical Cloud: ${slice_ns}-common" 20
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/logical-clouds/cert-manager/status?type=cluster" "Logical Cloud: cert-manager" 20
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/logical-clouds/httpcrd/status?type=cluster" "Logical Cloud: httpcrd" 20
 	echo "-----------------------------------------------------------------------"
-	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/ovn-network.yaml -v ${valuesFile} -w 5 &>> ${logFile}
-	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/common_sliceapps_deploy.yaml -v ${valuesFile} -w 15 &>> ${logFile}
+	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/ovn-network.yaml -v ${valuesFile} &>> ${logFile}
+	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/common_sliceapps_deploy.yaml -v ${valuesFile} -w 12 &>> ${logFile}
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/composite-apps/${compAppName}-cert/v1/deployment-intent-groups/${depIntGroup}-cert/status?type=cluster" "App: certificate-manager" 120
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/composite-apps/${compAppName}-common/v1/deployment-intent-groups/${depIntGroup}-common/status?type=cluster" "App: free5gc  common" 120
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/composite-apps/${compAppName}-sdewan-crd/v1/deployment-intent-groups/${depIntGroup}-sdewan-crd/status?type=cluster" "App: sdewan-crd-controller" 120

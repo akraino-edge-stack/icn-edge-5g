@@ -1,5 +1,6 @@
 #! /bin/bash
 
+source common-config
 source common_helper.sh
 
 slice_ns="dummy"
@@ -31,19 +32,13 @@ projName="proj5-${slice_ns}"
 compAppName="compositefree5gc-${slice_ns}"
 compProfName="free5gc-${slice_ns}-profile"
 depIntGroup="free5gc-${slice_ns}-deployment-intent-group"
-containerRegistry=${DOCKER_REPO}
-f5gcTag="3.0.5"
-cPlaneNode="kube-four"
-dPlaneNode="kube-three"
-#serviceType="LoadBalancer"
-Domain="f5gnetslice.com"
 upfName="f5gc-upf"
 smfName="f5gc-smf"
 baseApp="free5g"
 subDomain="free5g"
 
-valuesFile=${slice_ns}-config-values.yaml
-logFile="emco-log-${slice_ns}"
+valuesFile="${slice_ns}-config-values.yaml"
+logFile="emco-${slice_ns}.log"
 scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 emcodir=$(dirname ${scriptDir})
 emcoCFGFile=${scriptDir}/emco-cfg.yaml
@@ -193,18 +188,19 @@ prioslice:
             "pfcp.addr": ${smfName}.${subDomain}.${slice_ns}.svc.cluster.local
             "userplane_information.up_nodes.gNB1.an_ip": 172.16.34.2
             "userplane_information.up_nodes.UPF.node_id": ${upfName}.${subDomain}.${slice_ns}.svc.cluster.local
-            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[0].sNssai.sst": "${nssf_sst}"
-            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[0].sNssai.sd": "${nssf_sd}"
+            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[0].sNssai.sst": "${nssf_sst0}"
+            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[0].sNssai.sd": "${nssf_sd0}"
             "userplane_information.up_nodes.UPF.sNssaiUpfInfos[0].dnnUpfInfoList[0].dnn": internet
-            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[1].sNssai.sst": "${nssf_sst}"
-            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[1].sNssai.sd": "${nssf_sd}"
+            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[0].dnnUpfInfoList[0].pools[0].cidr": "${nssf_cidr0}"
+            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[1].sNssai.sst": "${nssf_sst1}"
+            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[1].sNssai.sd": "${nssf_sd1}"
             "userplane_information.up_nodes.UPF.sNssaiUpfInfos[1].dnnUpfInfoList[0].dnn": internet
+            "userplane_information.up_nodes.UPF.sNssaiUpfInfos[1].dnnUpfInfoList[0].pools[0].cidr": "${nssf_cidr1}"
             "userplane_information.up_nodes.UPF.interfaces[0].interfaceType": N3
             "userplane_information.up_nodes.UPF.interfaces[0].endpoints[0]": "${upfN3}"
             "userplane_information.up_nodes.UPF.interfaces[0].networkInstance": internet
-            "sNssaiInfos.sNssai.sst": "${nssf_sst}"
+            "sNssaiInfos.sNssai.sst": "${nssf_sst0}"
             "sNssaiInfos.sNssai.dnnInfos.dnn": "internet"
-            "sNssaiInfos.sNssai.dnnInfos.ueSubnet": "${ueSubNet}"
             "service.type": ${serviceType}
             "n4service.type": "NodePort"
             "n4service.nodePort": "${n4NodePort}"
@@ -297,7 +293,7 @@ deploy_slice_app () {
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/logical-clouds/${slice_ns}/status?type=cluster" "Logical Cloud: ${slice_ns}" 20
 	echo "-----------------------------------------------------------------------"
 	echo "Deploying a new slice on namespace ${slice_ns}..."
-	${EMCOCTL} --config ${emcoCFGFile} apply -f ${scriptDir}/prio_slice1_deploy.yaml -v ${valuesFile} -w 15 &>> ${logFile}
+	${EMCOCTL} --config ${emcoCFGFile} apply -f ${scriptDir}/prio_slice1_deploy.yaml -v ${valuesFile} &>> ${logFile}
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/composite-apps/${compAppName}/v1/deployment-intent-groups/${depIntGroup}/status?type=cluster" "App: free5gc prio ${slice_ns}" 120
 	echo "-----------------------------------------------------------------------"
 }

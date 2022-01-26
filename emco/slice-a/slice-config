@@ -1,11 +1,15 @@
 
 slice_ns="slice-a"
-serviceType="LoadBalancer"
+#serviceType="LoadBalancer"
 
 upfN3=172.16.34.3
 ueSubNet=172.16.1.0/24
-nssf_sst="1"
-nssf_sd="010203"
+nssf_sst0="1"
+nssf_sd0="010203"
+nssf_cidr0="172.16.1.0/24"
+nssf_sst1="1"
+nssf_sd1="112233"
+nssf_cidr1="172.16.3.0/24"
 
 n4NodePort="32705"
 udmServicePort="32503"

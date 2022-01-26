@@ -25,7 +25,7 @@ make base
 
 4. Build the other NFs
 ```
-for i in nrf udr udm ausf nssf amf pcf  upf smf; do docker build -t free5gc-$i:3.0.5 ./nf_$i/ --build-arg http_proxy=<proxy-settings> --build-arg https_proxy=<proxy-settings> ; done
+for i in nrf udr udm ausf nssf amf pcf  upf smf; do docker build -t free5gc-$i:3.0.6 ./nf_$i/ --build-arg http_proxy=<proxy-settings> --build-arg https_proxy=<proxy-settings> ; done
 ```
 
 5. Build the webui image  (Add the proxy settings only if needed)
@@ -37,14 +37,14 @@ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 sudo apt-get update
 sudo apt-get install -y nodejs yarn
-git clone --recursive -b v3.0.5 -j `nproc` https://github.com/free5gc/free5gc.git
+git clone --recursive -b v3.0.6 -j `nproc` https://github.com/free5gc/free5gc.git
 cd free5gc
 make webconsole
 cd ..
 sed -i '/^[^#]/ s/\(^.*base.*$\)/#\ \1/' Dockerfile
 sed -i '/^[^#]/ s/\(^.*COPY.*webconsole$\)/COPY \.\/free5gc\/webconsole\/bin\/webconsole \.\/webconsole\/webui /' Dockerfile
 sed -i '/^[^#]/ s/\(^.*COPY.*public$\)/COPY \.\/free5gc\/webconsole\/public \.\/webconsole\/public/' Dockerfile
-docker build -t free5gc-webui:3.0.5 ./ --build-arg http_proxy=<proxy-settings> --build-arg https_proxy=<proxy-settings>
+docker build -t free5gc-webui:3.0.6 ./ --build-arg http_proxy=<proxy-settings> --build-arg https_proxy=<proxy-settings>
 ```
 
 6. Tag the images and push to the docker registry (DOCKER_REPO).

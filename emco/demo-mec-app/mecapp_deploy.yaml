@@ -188,7 +188,7 @@ spec:
   clusterInfo:
     scope: Label
     clusterProvider: edgeProvider
-    clusterLabel: LabelA
+    clusterLabel: sliceLabelA
     clusterName: "dummy"
     mode: allow
 files:

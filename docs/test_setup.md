@@ -11,6 +11,7 @@
     * VM-Router : Linux VM configured to work as a router. It also has power-DNS server installed.
     * UE-RAN Sim: Linux VM where we will run the UE-RAN simulator to connect to the Free5GC core NFs.
 - All the VMs are installed with operating system : Ubuntu 20.04.2 LTS
+- Add proper route / IPTable entries as required in the host server (for external access to the VMs).
 
 ***2. Software Components***
 
@@ -70,16 +71,17 @@ Note: The helm chart for the external-dns is also available in the Charts folder
     cd external-dns
     helm install --set provider=pdns --set pdns.apiUrl=http://<ip_address_of_vm_router> --set pdns.apiKey=<api_key: NETSLICING> --set txtOwnerId=<owner_id> --set logLevel=debug --set interval=30s --set policy=sync external-dns ./
 ```
-Note: The above manual steps are not required when using the deploy_provider.sh script.
+Note: The above manual steps are not required when using the deploy_provider.sh script. Modify the script "deploy_provider.sh" as required for the setup.
 
 ****2.5 Metallb (LoadBalancer):****
 - load-balancer implementation for bare metal Kubernetes clusters.
 - Deployed on Target clusters (Cluster-B and Cluster-C in the setup above).
 - Refer: [Metallb](https://github.com/metallb/metallb)
 -  The metallb is now deployed automatically from EMCO cluster using the deploy_provider.sh. 
-- This script also has the proper GAC intents to create / modify the configuration.
+- This script also has the proper GAC intents to create / modify the configuration. Modify this script as required with the proper IP address range, BGP peer address etc., The metallb mode (L2/L3) can be selected by modifying the "common-config" file, when deploying using the script.
 
-Metallb Deployment Values file (metallb_values.yaml) used for manual helm deployment:
+Metallb Deployment Values file (metallb_values.yaml) used for manual helm deployment (modify as required):
+For L2 Mode
 ```
 configInline:
   address-pools:
@@ -88,6 +90,20 @@ configInline:
      addresses:
      - < IP address range to be used for loadbalancer services >
 ```
+for L3 (BGP) mode:
+```
+configInline:
+  peers:
+  - peer-address: 192.168.20.50
+    peer-asn: 3000
+    my-asn: 5000
+  address-pools:
+  - name: default
+    protocol: bgp
+    addresses:
+    - 192.178.20.0/24
+```
+
 To deploy:
 ```
     helm repo add metallb https://metallb.github.io/metallb
@@ -100,7 +116,8 @@ Note: The above manual steps are not required while using the deploy_provider.sh
 
 ****2.6 set CoreDNS to also use the powerDNS server for DNS resolution****
 - Modify the coredns configmap to also use the powerDNS to resolve the FQDNs.
-- This is needed on target clusters B and C.
+- This is needed on target clusters B and C. 
+
 ```
 > kubectl edit -n kube-system cm coredns   # Add the following lines to the configmap
 
@@ -123,8 +140,10 @@ Note: The above manual steps are not required while using the deploy_provider.sh
 
 ****2.9 Route Entries****
 - setup the route entries on all the VMs and the VM-Router VM, so that each VM can access the other VMs.
+- More route entries may be required in the target clusters while using L3 (BGP) mode for the metallb based on the IP range used for the load balancer.
 
 ****2.10 EMCO****
 - Install the EMCO on the Cluster-A.
 - Refer to the [link](https://gitlab.com/project-emco/core/emco-base) for details regarding EMCO and installation instructions.
 - Copy the kubeconfig files from the target clusters B and C to the Cluster-A for emco to use them.
+- Ensure the "emcoctl" binary is available in the PATH, as we use this binary to deploy the application.
