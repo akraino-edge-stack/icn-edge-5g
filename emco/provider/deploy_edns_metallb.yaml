@@ -159,7 +159,7 @@ spec:
     kind: Deployment
     name: r1-external-dns
 file:
-  {{ .defaultJson }}
+  {{ .defaultYAML }}
 
 ---
 #create the generic action intents customizations
@@ -171,7 +171,7 @@ metadata :
 spec:
   clusterSpecific: "true"
   clusterInfo:
-    scope: Label
+    scope: label
     clusterProvider: {{.ClusterProvider}}
     clusterName: "dummy"
     clusterLabel: {{.Cluster1Label}}
@@ -197,7 +197,7 @@ metadata :
 spec:
   clusterSpecific: "true"
   clusterInfo:
-    scope: Label
+    scope: label
     clusterProvider: {{.ClusterProvider}}
     clusterName: "dummy"
     clusterLabel: {{.Cluster2Label}}
@@ -229,7 +229,7 @@ spec:
     kind: ConfigMap
     name: r1-metallb
 file:
-  {{ .defaultJson }}
+  {{ .defaultYAML }}
 
 ---
 #create the generic action intents
@@ -241,7 +241,7 @@ metadata :
 spec:
   clusterSpecific: "true"
   clusterInfo:
-    scope: Label
+    scope: label
     clusterProvider: {{.ClusterProvider}}
     clusterName: "dummy"
     clusterLabel: {{.Cluster1Label}}
@@ -266,7 +266,7 @@ metadata :
 spec:
   clusterSpecific: "true"
   clusterInfo:
-    scope: Label
+    scope: label
     clusterProvider: {{.ClusterProvider}}
     clusterName: "dummy"
     clusterLabel: {{.Cluster2Label}}

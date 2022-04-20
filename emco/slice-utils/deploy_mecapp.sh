@@ -32,9 +32,6 @@ depIntGroup="free5gc-${slice_ns}-deployment-intent-group"
 
 valuesFile="${slice_ns}-mecapp-config-values.yaml"
 logFile="emco-${slice_ns}-mecapp.log"
-scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-emcodir=$(dirname ${scriptDir})
-emcoCFGFile=${scriptDir}/emco-cfg.yaml
 echo "Log for deploying mec app on ${slice_ns} namespace" > ${logFile}
 
 create_mecapp_values () {
@@ -55,8 +52,8 @@ Cluster1Ref: clusterB-ref
 Cluster2Ref: clusterC-ref
 
 AdminCloud: admin
-
-defaultJson: ${emcodir}/emco-init/default.json
+defaultJson: ${defaultJsonFile}
+defaultYAML: ${defaultYAMLFile}
 DefaultProfileFw: f5gc-default-pr.tgz
 
 mecApp:

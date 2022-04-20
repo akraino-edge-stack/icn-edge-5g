@@ -19,9 +19,6 @@ ExternalServerIP="${externalAppServerIP}"
 
 logFile="emco-${slice_ns}-common.log"
 valuesFile="${slice_ns}-common-config-values.yaml"
-scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-emcodir=$(dirname ${scriptDir})
-emcoCFGFile=${scriptDir}/emco-cfg.yaml
 
 echo "Logging the deployment of apps common to all slices" > ${logFile}
 if [ ${serviceType} == "LoadBalancer" ]; then
@@ -88,7 +85,8 @@ Cluster2Label: edge-clusterC
 Cluster1Ref: clusterB-ref
 Cluster2Ref: clusterC-ref
 
-defaultJson: ${emcodir}/emco-init/default.json
+defaultJson: ${defaultJsonFile}
+defaultYAML: ${defaultYAMLFile}
 DefaultProfileFw: f5gc-default-pr.tgz
 
 lclouds:
@@ -450,7 +448,7 @@ common:
             resFile: externalDNSentry.yaml
             clusterSpecific: "true"
             cluster:
-              scope: Label
+              scope: label
               provider: edgeProvider
               name: dummy
               label: httpLabelB

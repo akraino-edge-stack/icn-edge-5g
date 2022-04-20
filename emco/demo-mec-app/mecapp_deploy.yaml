@@ -127,7 +127,7 @@ spec:
     kind: Service
     name: r1-{{ $app.name }}
 file:
-  {{ $.defaultJson }}
+  {{ $.defaultYAML }}
 
 ---
 #create the generic action intents customizations
@@ -139,7 +139,7 @@ metadata :
 spec:
   clusterSpecific: "false"
   clusterInfo:
-    scope: Label
+    scope: label
 {{- range $index, $int := $app.cluster }}
     clusterProvider: {{ $int.provider }}
     clusterLabel: {{ $int.label }}
@@ -186,7 +186,7 @@ metadata :
 spec:
   clusterSpecific: "true"
   clusterInfo:
-    scope: Label
+    scope: label
     clusterProvider: edgeProvider
     clusterLabel: sliceLabelA
     clusterName: "dummy"

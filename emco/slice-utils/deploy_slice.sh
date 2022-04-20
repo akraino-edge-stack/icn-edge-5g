@@ -39,9 +39,6 @@ subDomain="free5g"
 
 valuesFile="${slice_ns}-config-values.yaml"
 logFile="emco-${slice_ns}.log"
-scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-emcodir=$(dirname ${scriptDir})
-emcoCFGFile=${scriptDir}/emco-cfg.yaml
 
 echo "Log for deploying slice on ${slice_ns} namespace" > ${logFile}
 if [ ${serviceType} == "LoadBalancer" ]; then
@@ -95,7 +92,8 @@ Cluster2Ref: clusterC-ref
 
 AdminCloud: admin
 
-defaultJson: ${emcodir}/emco-init/default.json
+defaultJson: ${defaultJsonFile}
+defaultYAML: ${defaultYAMLFile}
 DefaultProfileFw: f5gc-default-pr.tgz
 
 lclouds:

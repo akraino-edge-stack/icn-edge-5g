@@ -209,7 +209,7 @@ spec:
     kind: Service
     name: {{ $app.name }}
 file:
-  {{ $.defaultJson }}
+  {{ $.defaultYAML }}
 
 ---
 #create the generic action intents customizations
@@ -221,7 +221,7 @@ metadata :
 spec:
   clusterSpecific: "false"
   clusterInfo:
-    scope: Label
+    scope: label
     clusterProvider: {{ $slice.cPlane.clusterProvider }}
     clusterName: "dummy"
     clusterLabel: {{ $slice.cPlane.clusterLabel }}
@@ -256,7 +256,7 @@ spec:
     kind: Service
     name: {{ $app.name }}
 file:
-  {{ $.defaultJson }}
+  {{ $.defaultYAML }}
 
 ---
 #create the generic action intents customizations
@@ -268,7 +268,7 @@ metadata :
 spec:
   clusterSpecific: "false"
   clusterInfo:
-    scope: Label
+    scope: label
     clusterProvider: {{ $slice.cPlane.clusterProvider }}
     clusterName: "dummy"
     clusterLabel: {{ $slice.cPlane.clusterLabel }}

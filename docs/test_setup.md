@@ -32,7 +32,7 @@ Note: Any other DNS server supported by external-DNS can be used.
     sudo apt install pdns-server
     sudo apt-get install pdns-backend-sqlite3
 ```
-- Configuration file:
+- Configuration file: (/etc/powerdns/pdns.conf)
 ```
     api=yes
     api-key=<api_key: NETSLICING>
@@ -147,3 +147,4 @@ Note: The above manual steps are not required while using the deploy_provider.sh
 - Refer to the [link](https://gitlab.com/project-emco/core/emco-base) for details regarding EMCO and installation instructions.
 - Copy the kubeconfig files from the target clusters B and C to the Cluster-A for emco to use them.
 - Ensure the "emcoctl" binary is available in the PATH, as we use this binary to deploy the application.
+**NOTE** The network slice deployment has been tested with EMCO tag v22.03

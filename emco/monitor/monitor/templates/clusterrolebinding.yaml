@@ -10,5 +10,5 @@ subjects:
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: monitor
+  name: cluster-admin
   apiGroup: rbac.authorization.k8s.io

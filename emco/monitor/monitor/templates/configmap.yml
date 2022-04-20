@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-monitor-list
+  namespace: {{ .Release.Namespace }}
+data:
+  gvk.conf: |
+      [
+        {"Group": "k8s.plugin.opnfv.org", "Version": "v1alpha1", "Kind": "Network", "Resource": "networks" },
+        {"Group": "rbac.authorization.k8s.io", "Version": "v1", "Kind": "ClusterRole", "Resource": "clusterroles"}
+      ]
+  

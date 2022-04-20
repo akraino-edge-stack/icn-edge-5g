@@ -73,7 +73,7 @@ spec:
   overrideValues:
   - app: {{.AppMonitor}}
     values:
-      "tag": "kube-latest"
+      "tag": {{.MonitorTag}}
       "registryPrefix": {{.monRegistryPrefix}}
 
 ---

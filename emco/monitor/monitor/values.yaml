@@ -1,2 +1,10 @@
-registryPrefix: 10.190.212.245:443/
-tag: kube-latest
+registryPrefix: localhost:5000/
+tag: v22.03
+
+workingDir: /opt/emco/monitor
+git:
+  enabled: false
+
+noProxyHosts: 
+httpProxy: 
+httpsProxy: 

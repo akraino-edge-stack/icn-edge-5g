@@ -172,7 +172,7 @@ file:
 {{- if eq $gac.new "true" }}
   {{ $gac.resFile }}
 {{- else }}
-  {{ $.defaultJson }}
+  {{ $.defaultYAML }}
 {{- end }}
 
 ---
@@ -186,7 +186,7 @@ spec:
   clusterSpecific: "{{ $gac.clusterSpecific }}"
   clusterInfo:
 {{- if eq $gac.clusterSpecific "false" }}
-    scope: Label
+    scope: label
     clusterProvider: {{ (index $app.cluster 0).provider }}
     clusterName: "dummy"
     clusterLabel: {{ (index $app.cluster 0).label }}

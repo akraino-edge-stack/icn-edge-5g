@@ -17,9 +17,6 @@ depIntGroup="provider-intent-group"
 
 logFile="emco-provider.log"
 valuesFile="provider-config-values.yaml"
-scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-emcodir=$(dirname ${scriptDir})
-emcoCFGFile=${scriptDir}/emco-cfg.yaml
 echo "Log for deploying provider (e-dns and metallb) applications" > ${logFile}
 
 create_provider_values () {
@@ -52,6 +49,7 @@ DeploymentMonIntent: ${depIntGroup}-monitor
 GenericMonPlacementIntent: monitorGapPlacement
 AppMonitor: monitor
 HelmAppMonitor: monitor.tar.gz
+MonitorTag: latest
 monRegistryPrefix: ${containerRegistry}
 
 CompositeProviderAppName: ${compAppName}-provider
@@ -96,13 +94,14 @@ metallbL3Config:
       }
     ]
 
-defaultJson: ${emcodir}/emco-init/default.json
+defaultJson: ${defaultJsonFile}
+defaultYAML: ${defaultYAMLFile}
 DefaultProfileFw: f5gc-default-pr.tgz
 
-RsyncPort: 30441
-GacPort: 30493
-OvnPort: 30473
-DtcPort: 30483
+RsyncPort: 30431
+GacPort: 30433
+OvnPort: 30432
+DtcPort: 30418
 NpsPort: 30485
 SdsPort: 30486
 HostIP: ${hostIP}

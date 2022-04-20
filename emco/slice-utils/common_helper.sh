@@ -8,6 +8,12 @@ if [ -n ${hostIP} ]; then
 	hostIP=$(hostname -I | cut -f 1 -d " ")
 fi
 
+scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+emcodir=$(dirname ${scriptDir})
+emcoCFGFile=${scriptDir}/emco-cfg.yaml
+
+defaultJsonFile=${emcodir}/emco-init/default.json
+defaultYAMLFile=${emcodir}/emco-init/default.yaml
 
 # generate_emco_cfg : Generates the EMCO config file
 # takes two arguments
@@ -23,19 +29,19 @@ clm:
   port: 30461
 ncm:
   host: $1
-  port: 30431
+  port: 30481
 ovnaction:
   host: $1
-  port: 30471
+  port: 30451
 dcm:
   host: $1
   port: 30477
 gac:
   host: $1
-  port: 30491
+  port: 30420
 dtc:
   host: $1
-  port: 30481
+  port: 30418
 hpaplacement:
   host: $1
   port: 30451
@@ -69,7 +75,7 @@ function check_status() {
 		echo -n "."
 		if [ $stat == "200" ]; then
 			out=$(${EMCOCTL} --config ${emcoCFG} get ${URL} | grep Response: | sed -e 's/Response: //')
-			echo $out | grep "\"status\":\"Instantiated\"" &>> ${logFILE}
+			echo $out | grep "\"*tatus\":\"Instantiated\"" &>> ${logFILE}
 			if [ $? -eq 0 ]; then
 				echo "Done, successful."
 				break

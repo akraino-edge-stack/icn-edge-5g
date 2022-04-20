@@ -24,6 +24,10 @@ spec:
           command:
           - /opt/emco/monitor/monitor
           imagePullPolicy: Always
+          volumeMounts:
+          - name: config-volume
+            mountPath: {{ .Values.workingDir }}/gvk.conf
+            subPath: gvk.conf
           env:
             - name: NO_PROXY
               value: {{ .Values.noProxyHosts }}
@@ -45,3 +49,29 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "monitor"
+             {{- if eq (.Values.git.enabled) true }}
+            - name: GIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-git-monitor
+                  key: username
+            - name: GIT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-git-monitor
+                  key: token
+            - name: GIT_REPO
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-git-monitor
+                  key: repo
+            - name: GIT_CLUSTERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-git-monitor
+                  key: clustername
+              {{- end }}
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-monitor-list
