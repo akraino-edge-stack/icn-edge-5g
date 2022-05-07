@@ -22,4 +22,5 @@ make all
 ```
 The image demo-nginx-rtmp:latest will be created and pushed to the DOCKER_REPO.
 **NOTE** An example helm chart to deploy this image with nginx config is available in the charts folder: Charts/demo-nginx-rtmp/
+**NOTE** The config file required for the nginx is provided by this chart using the configmap resource.
 

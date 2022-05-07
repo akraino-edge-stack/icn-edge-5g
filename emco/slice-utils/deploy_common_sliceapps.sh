@@ -24,11 +24,6 @@ echo "Logging the deployment of apps common to all slices" > ${logFile}
 if [ ${serviceType} == "LoadBalancer" ]; then
 	slice1_nrf=f5gc-nrf.${slice1_ns}.${Domain}
 	slice0_nrf=f5gc-nrf.${slice0_ns}.${Domain}
-	slice0_ausf=f5gc-ausf.${slice0_ns}.${Domain}
-	slice0_udr=f5gc-udr.${slice0_ns}.${Domain}
-	slice0_udm=f5gc-udm.${slice0_ns}.${Domain}
-	slice0_pcf=f5gc-pcf.${slice0_ns}.${Domain}
-	slice0_smf=f5gc-smf.${slice0_ns}.${Domain}
 	slice0_nssf=f5gc-nssf.${slice_ns}.${Domain}
 	slice0_amf=f5gc-amf.${slice_ns}.${Domain}
 	mongo_url=f5gc-mongodb.${slice_ns}.${Domain}
@@ -38,13 +33,8 @@ if [ ${serviceType} == "LoadBalancer" ]; then
 elif [ ${serviceType} == "NodePort" ]; then
 	slice1_nrf=${cPlaneNode}
 	slice0_nrf=${cPlaneNode}
-	slice0_ausf=${cPlaneNode}
-	slice0_udr=${cPlaneNode}
-	slice0_udm=${cPlaneNode}
 	slice0_nssf=${cPlaneNode}
-	slice0_pcf=${cPlaneNode}
 	slice0_amf=${dPlaneNode}
-	slice0_smf=${dPlaneNode}
 	mongo_url=${cPlaneNode}
 	mongo_port=32017
 	sliceNRFPort="32520"
@@ -145,7 +135,7 @@ ovn:
           exclude: 172.16.34.2 172.16.34.5..172.16.34.10
         vlan:
           id: "101"
-          interface: ens4
+          interface: ${ovnInterface}
           selector: specific
           nodeLabel: 
             - key: kubernetes.io/hostname
@@ -159,7 +149,7 @@ ovn:
           exclude: 172.16.24.2 172.16.24.5..172.16.24.10
         vlan:
           id: "102"
-          interface: ens4
+          interface: ${ovnInterface}
           selector: specific
           nodeLabel: 
             - key: kubernetes.io/hostname
@@ -233,6 +223,7 @@ common:
           "image.repository": "${containerRegistry}free5gc-amf"
           "image.tag": ${f5gcTag}
           "helmInstallOvn": "true"
+          nodeSelector.kubernetes\\.io/hostname: ${dPlaneNode}
         cluster:
           - provider: edgeProvider
             label: sliceCLabelA
@@ -399,7 +390,7 @@ common:
         profileFw: f5gc-default-pr.tgz
         values:
           "namespace": sdewan-system
-          "spec.sdewan.image": integratedcloudnative/sdewan-controller:0.4.1
+          "spec.sdewan.image": integratedcloudnative/sdewan-controller:0.5.2
         cluster:
           - provider: edgeProvider
             label: sdewanLabelA
@@ -467,7 +458,8 @@ deploy_slice_common_apps () {
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/logical-clouds/httpcrd/status?type=cluster" "Logical Cloud: httpcrd" 20
 	echo "-----------------------------------------------------------------------"
 	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/ovn-network.yaml -v ${valuesFile} &>> ${logFile}
-	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/common_sliceapps_deploy.yaml -v ${valuesFile} -w 12 &>> ${logFile}
+	echo "Deploying the applications common to all slices... this will take few minutes...."
+	${EMCOCTL} --config ${emcoCFGFile} apply -f ${emcodir}/provider/common_sliceapps_deploy.yaml -v ${valuesFile} -w 25 &>> ${logFile}
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/composite-apps/${compAppName}-cert/v1/deployment-intent-groups/${depIntGroup}-cert/status?type=cluster" "App: certificate-manager" 120
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/composite-apps/${compAppName}-common/v1/deployment-intent-groups/${depIntGroup}-common/status?type=cluster" "App: free5gc  common" 120
 	check_status ${emcoCFGFile} ${logFile} "projects/${projName}/composite-apps/${compAppName}-sdewan-crd/v1/deployment-intent-groups/${depIntGroup}-sdewan-crd/status?type=cluster" "App: sdewan-crd-controller" 120

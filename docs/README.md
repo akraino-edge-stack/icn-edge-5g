@@ -246,6 +246,20 @@ Note: uesimtun0 for first slice and uesimtun1 for the second slice.
 
 - Once the tunnel interfaces are created, any network applications can be used to send / receive traffic on the PDU sessions.
 
+***4.0 Uninstalling the network slices using EMCO***
+
+Here are the steps to uninstall the slices and the software components
+
+```
+	./deploy_mecapp.sh --namespace=slice-b uninstall
+	./deploy_slice.sh --configfile=../slice-b/slice-config uninstall
+	./deploy_slice.sh --configfile=../slice-a/slice-config uninstall
+	./deploy_common_sliceapps.sh uninstall
+	./deploy_provider.sh uninstall
+
+```
+
+
 ***Notes:***
 
 - Free5gc subscriber Controller:

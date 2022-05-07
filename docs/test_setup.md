@@ -16,12 +16,14 @@
 ***2. Software Components***
 
 ****2.1 Kubernetes:****
-- Ensure that the kubernetes is installed on clusters A, B and C.
+- Ensure that the kubernetes (v1.23) is installed on clusters A, B and C.
 - [Kubernetes](https://github.com/kubernetes/kubernetes)
+Note: The network slicing has been tested with kubernetes version 1.23.0
 
 ****2.2 Nodus CNI:****
 - Install NODUS (ovn4nfv) in Cluster-B and Cluster-C as primary CNI.
 - Please refer to this [link](https://github.com/akraino-edge-stack/icn-nodus) for details.
+Note: This has been tested with git commit ID: 8a7ebf8f36e462510b5583cb101a2183faa57c8e
 
 ****2.3 DNS Server****
 - we have used power-DNS as the DNS server running in the VM-Router Virtual Machine.
@@ -48,6 +50,7 @@ Note: Any other DNS server supported by external-DNS can be used.
     sudo mkdir /var/lib/powerdns
     sudo apt-get install sqlite3
     sudo sqlite3 /var/lib/powerdns/pdns.sqlite3 < /usr/share/doc/pdns-backend-sqlite3/schema.sqlite3.sql
+    sudo chown -R pdns:pdns /var/lib/powerdns
     sudo systemctl restart pdns
     systemctl status pdns.service
 ```
@@ -72,6 +75,7 @@ Note: The helm chart for the external-dns is also available in the Charts folder
     helm install --set provider=pdns --set pdns.apiUrl=http://<ip_address_of_vm_router> --set pdns.apiKey=<api_key: NETSLICING> --set txtOwnerId=<owner_id> --set logLevel=debug --set interval=30s --set policy=sync external-dns ./
 ```
 Note: The above manual steps are not required when using the deploy_provider.sh script. Modify the script "deploy_provider.sh" as required for the setup.
+Note: The helm chart for deploying external-dns is available in the Charts folder of this repo.
 
 ****2.5 Metallb (LoadBalancer):****
 - load-balancer implementation for bare metal Kubernetes clusters.
@@ -113,6 +117,7 @@ To deploy:
     helm install metallb ./ -f ../<path_to_values_file metallb_values.yaml>
 ```
 Note: The above manual steps are not required while using the deploy_provider.sh script during deployment.
+Note: The helm chart for deploying metallb is available in the Charts folder of this repo.
 
 ****2.6 set CoreDNS to also use the powerDNS server for DNS resolution****
 - Modify the coredns configmap to also use the powerDNS to resolve the FQDNs.
@@ -132,19 +137,25 @@ Note: The above manual steps are not required while using the deploy_provider.sh
 - Ensure the gtp5g.ko module is properly loaded in the minion node of cluster B. 
 - This is required for free5gc UPF.
   	Refer to: [https://github.com/free5gc/free5gc/wiki/Installation]
+Note: The tested commitId/tag : 39bf0c85a597eba0de5b506a6753f77c4565482c (HEAD, tag: v0.5.3)
 
 ****2.8 UERAN Simulator****
 - Install UERAN Simulator.
-- This is required only on the UE-RAN simulator VM and compile the UE-RAN simulator.
-- For details refer: [link](https://github.com/aligungr/UERANSIM)
+- The version used or tested is v3.1.0  ( git checkout v3.1.0 )
+- compile the UE-RAN simulator.
+- For details refer: [ueransim github](https://github.com/aligungr/UERANSIM)
+
+**Note** This step is required only on the UE-RAN simulator VM 
 
 ****2.9 Route Entries****
 - setup the route entries on all the VMs and the VM-Router VM, so that each VM can access the other VMs.
 - More route entries may be required in the target clusters while using L3 (BGP) mode for the metallb based on the IP range used for the load balancer.
+- Disable the firewall in all the VMs. (Note: Firewall will be enabled in the future releases by allowing only required protocol:ports)
 
 ****2.10 EMCO****
 - Install the EMCO on the Cluster-A.
 - Refer to the [link](https://gitlab.com/project-emco/core/emco-base) for details regarding EMCO and installation instructions.
 - Copy the kubeconfig files from the target clusters B and C to the Cluster-A for emco to use them.
 - Ensure the "emcoctl" binary is available in the PATH, as we use this binary to deploy the application.
+
 **NOTE** The network slice deployment has been tested with EMCO tag v22.03

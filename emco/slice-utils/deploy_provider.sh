@@ -56,6 +56,7 @@ CompositeProviderAppName: ${compAppName}-provider
 ProviderDepIntGrpName: ${depIntGroup}-provider
 CompProviderProfileName: ${compProfName}-provider
 HelmAppDNS: external-dns.tgz
+PdnsURL: ${PDNS_URL}
 HelmAppMetal: metallb.tgz
 metallbProtocol: ${metallbMode}
 metallbL2Config: 

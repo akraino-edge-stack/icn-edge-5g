@@ -80,7 +80,7 @@ spec:
       "interval": "30s"
       "policy":  "sync"
       "provider": "pdns"
-      "pdns.apiUrl": "http://192.168.20.50"
+      "pdns.apiUrl": {{.PdnsURL}}
       "pdns.apiKey": "NETSLICING"
   - app: metallb
     values:

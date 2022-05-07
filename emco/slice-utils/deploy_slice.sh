@@ -173,8 +173,9 @@ prioslice:
             "upfcfg.configuration.dnn_list[0].cidr": ${ueSubNet}
             "image.repository": "${containerRegistry}free5gc-upf"
             "image.tag": ${f5gcTag}
-            "sdewan.image": integratedcloudnative/sdewan-cnf:0.4.1
+            "sdewan.image": integratedcloudnative/sdewan-cnf:0.5.2
             "helmInstallOvn": "true"
+            nodeSelector.kubernetes\\.io/hostname: ${dPlaneNode}
         - name: f5gc-smf
           helmApp: f5gc-smf.tgz
           profileName: smf-profile

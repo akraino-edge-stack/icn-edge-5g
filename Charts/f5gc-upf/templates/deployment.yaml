@@ -89,6 +89,16 @@ spec:
           - /usr/bin/sudo
           - /bin/sh
           - /tmp/sdewan/entrypoint.sh
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /
+              port: 80
+              scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
           securityContext:
             privileged: true
             procMount: Default

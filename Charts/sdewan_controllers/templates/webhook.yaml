@@ -1,16 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2020 Intel Corporation
+# Copyright (c) 2021 Intel Corporation
 
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: sdewan-system/sdewan-serving-cert
+    cert-manager.io/inject-ca-from: {{ .Values.namespace }}/sdewan-serving-cert
   name: sdewan-validating-webhook-configuration
 webhooks:
-- clientConfig:
-    caBundle: Cg==
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: sdewan-webhook-service
       namespace: {{ .Values.namespace }}
@@ -21,7 +22,7 @@ webhooks:
   - apiGroups:
     - batch.sdewan.akraino.org
     apiVersions:
-    - v1alpha1
+    - v1
     operations:
     - CREATE
     - UPDATE
@@ -35,15 +36,21 @@ webhooks:
     - firewallsnats
     - firewalldnats
     - cnfnats
-    - cnfservice
+    - cnfroutes
+    - cnfrouterules
+    - cnfservices
     - cnflocalservices
     - cnfstatuses
     - sdewanapplication
     - ipsecproposals
     - ipsechosts
     - ipsecsites
-- clientConfig:
-    caBundle: Cg==
+    - networkfirewallrules
+    - cnfhubsites
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: sdewan-webhook-service
       namespace: {{ .Values.namespace }}
@@ -56,11 +63,9 @@ webhooks:
     - batch.sdewan.akraino.org
     apiVersions:
     - v1
-    - v1alpha1
     operations:
     - UPDATE
     resources:
-    - deployments
     - mwan3policies
     - mwan3rules
     - firewallzones
@@ -69,10 +74,15 @@ webhooks:
     - firewallsnats
     - firewalldnats
     - cnfnats
-    - cnfservice
+    - cnfservices
+    - cnfroutes
+    - cnfrouterules
     - cnflocalservices
     - cnfstatuses
     - sdewanapplication
     - ipsecproposals
     - ipsechosts
     - ipsecsites
+    - cnfhubsites
+    - networkfirewallrules
+  sideEffects: None

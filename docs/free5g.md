@@ -8,6 +8,8 @@ mkdir -p free5gc
 cd free5gc
 git clone https://github.com/free5gc/free5gc-compose.git
 cd free5gc-compose
+git checkout 3298097bd53dedcb78e70ab05cc29546dec88ea6
+
 ```
 
 2. Set the proxy configuration in the Makefile (optional step)
