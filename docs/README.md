@@ -277,5 +277,6 @@ Here are the steps to uninstall the slices and the software components
 ***Links:***
 
 - [Test Setup](test_setup.md)
-- [Free5gc images](free5g.md)
+- [Steps to build Free5gc images](free5g.md)
 - [sdewan](https://github.com/akraino-edge-stack/icn-sdwan)
+- [Frequently Asked Questions and Troubleshooting](FAQ.md)

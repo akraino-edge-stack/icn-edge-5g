@@ -23,5 +23,6 @@
     * [Steps to deploy network slices](docs/README.md)
     * [free5gc subscriber controller](src/http-crd-controller/README.md)
     * [demo nginx application](src/demo-nginx-rtmp/README.md)
+    * [FAQ and Troubleshooting](docs/FAQ.md)
 
 
