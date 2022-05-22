@@ -73,6 +73,15 @@ else
 	exit 3
 fi
 
+if [ ! -z ${upfNet} ] && [ $upfNet == "provider" ]; then
+	upfOvnIntent="true"
+	upfGTPUAddr=${upfN3IP}
+	upfEP0=${upfN3IP}
+else
+	upfOvnIntent="false"
+	upfGTPUAddr=${upfName}.${subDomain}.${slice_ns}.svc.cluster.local
+	upfEP0="${upfName}.${slice_ns}.f5gnetslice.com"
+fi
 
 create_slice_values () {
 	cat << NET > ${valuesFile}
@@ -96,6 +105,8 @@ defaultJson: ${defaultJsonFile}
 defaultYAML: ${defaultYAMLFile}
 DefaultProfileFw: f5gc-default-pr.tgz
 
+CNFDomain: ${Domain}
+
 lclouds:
   - name: ${slice_ns}
     namespace: ${slice_ns}
@@ -116,6 +127,7 @@ prioslice:
     compAppVer: v1
     compProfileName: ${compProfName}
     depIntGrpName: ${depIntGroup}
+    ovnIntent: ${upfOvnIntent}
     lCloud: ${slice_ns}
     dependency:
       - app: f5gc-udr
@@ -152,9 +164,9 @@ prioslice:
       - app: f5gc-upf
         appType: Deployment
         ifName: net2
-        nwName: gtpunetwork
+        nwName: ${upfNetName}
         defaultGateway: false
-        ipAddress: ${upfN3}
+        ipAddress: ${upfGTPUAddr}
     dPlane:
       clusterProvider: edgeProvider
       clusterLabel: sliceLabelA
@@ -168,7 +180,7 @@ prioslice:
             "hostname": ${upfName}
             "subdomain": ${subDomain}
             "upfcfg.configuration.pfcp[0].addr": ${upfName}.${subDomain}.${slice_ns}.svc.cluster.local
-            "upfcfg.configuration.gtpu[0].addr": ${upfN3}
+            "upfcfg.configuration.gtpu[0].addr": ${upfGTPUAddr}
             "upfcfg.configuration.dnn_list[0].dnn": internet
             "upfcfg.configuration.dnn_list[0].cidr": ${ueSubNet}
             "image.repository": "${containerRegistry}free5gc-upf"
@@ -176,6 +188,7 @@ prioslice:
             "sdewan.image": integratedcloudnative/sdewan-cnf:0.5.2
             "helmInstallOvn": "true"
             nodeSelector.kubernetes\\.io/hostname: ${dPlaneNode}
+            "service.type": ${serviceType}
         - name: f5gc-smf
           helmApp: f5gc-smf.tgz
           profileName: smf-profile
@@ -185,7 +198,7 @@ prioslice:
             "hostname": ${smfName}
             "subdomain": ${subDomain}
             "pfcp.addr": ${smfName}.${subDomain}.${slice_ns}.svc.cluster.local
-            "userplane_information.up_nodes.gNB1.an_ip": 172.16.34.2
+            "userplane_information.up_nodes.gNB1.an_ip": ${GnodeBIP}
             "userplane_information.up_nodes.UPF.node_id": ${upfName}.${subDomain}.${slice_ns}.svc.cluster.local
             "userplane_information.up_nodes.UPF.sNssaiUpfInfos[0].sNssai.sst": "${nssf_sst0}"
             "userplane_information.up_nodes.UPF.sNssaiUpfInfos[0].sNssai.sd": "${nssf_sd0}"
@@ -196,7 +209,7 @@ prioslice:
             "userplane_information.up_nodes.UPF.sNssaiUpfInfos[1].dnnUpfInfoList[0].dnn": internet
             "userplane_information.up_nodes.UPF.sNssaiUpfInfos[1].dnnUpfInfoList[0].pools[0].cidr": "${nssf_cidr1}"
             "userplane_information.up_nodes.UPF.interfaces[0].interfaceType": N3
-            "userplane_information.up_nodes.UPF.interfaces[0].endpoints[0]": "${upfN3}"
+            "userplane_information.up_nodes.UPF.interfaces[0].endpoints[0]": "${upfEP0}"
             "userplane_information.up_nodes.UPF.interfaces[0].networkInstance": internet
             "sNssaiInfos.sNssai.sst": "${nssf_sst0}"
             "sNssaiInfos.sNssai.dnnInfos.dnn": "internet"

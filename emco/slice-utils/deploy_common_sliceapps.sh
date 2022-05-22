@@ -44,6 +44,13 @@ else
 	exit 3
 fi
 
+if [ ! -z ${N2_NET} ] && [ ${N2_NET} == "provider" ] ; then
+	amfOvnIntent="true"
+	amfNGAPIP=${N2_AMFIP}
+else
+	amfOvnIntent="false"
+	amfNGAPIP="f5gc-amf-ngap.${slice_ns}.${Domain}"
+fi
 
 create_slice_common_values () {
 
@@ -180,7 +187,7 @@ common:
     compProfileName: ${compProfName}-common 
     depIntGrpName: ${depIntGroup}-common
     lCloud: ${slice_ns}-common
-    ovnIntent: true
+    ovnIntent: ${amfOvnIntent}
     gacIntent: true
     dependency:
       - app: f5gc-nrf
@@ -207,9 +214,9 @@ common:
       - app: f5gc-amf
         appType: Deployment
         ifName: net2
-        nwName: sctpnetwork
+        nwName: ${N2_NETNAME}
         defaultGateway: false
-        ipAddress: 172.16.24.3
+        ipAddress: ${amfNGAPIP}
     Apps:
       - name: f5gc-amf
         helmApp: f5gc-amf.tgz
@@ -224,6 +231,7 @@ common:
           "image.tag": ${f5gcTag}
           "helmInstallOvn": "true"
           nodeSelector.kubernetes\\.io/hostname: ${dPlaneNode}
+          ngapIPs[0]: "${amfNGAPIP}"
         cluster:
           - provider: edgeProvider
             label: sliceCLabelA
@@ -245,6 +253,24 @@ common:
                   }
                 }
               ]
+          - new: "false"
+            resource:
+              api: v1
+              kind: Service
+              name: f5gc-amf-ngap
+            clusterSpecific: "false"
+            type: json
+            patch: |-
+              [
+                {
+                  "op": "add",
+                  "path": "/metadata/annotations",
+                  "value": {
+                    "external-dns.alpha.kubernetes.io/hostname": "f5gc-amf-ngap.${slice_ns}.${Domain}"
+                  }
+                }
+              ]
+
       - name: f5gc-mongodb
         helmApp: f5gc-mongodb.tgz
         profileName: mongo-profile

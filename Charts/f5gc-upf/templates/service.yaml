@@ -5,12 +5,15 @@ metadata:
     app: f5gc-upf
   name: f5gc-upf
 spec:
-  type: ClusterIP
+  type: {{ .Values.service.type }}
   ports:
   - name: f5gc-upf-n3
-    port: 2152
+    port: {{ .Values.service.port }}
     protocol: UDP
     targetPort: 2152
+{{- if eq .Values.service.type "NodePort" }}
+    nodePort: {{ .Values.service.nodePort }}
+{{- end }}
   - name: f5gc-upf-n4
     port:  8805
     protocol: UDP

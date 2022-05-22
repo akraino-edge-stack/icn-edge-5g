@@ -11,7 +11,7 @@ data:
     configuration:
       amfName: AMF
       ngapIpList:
-        - 172.16.24.3                 # assigned to a second network interface
+{{ .Values.ngapIPs | toYaml | indent 8 }}             # assigned to a second network interface
       sbi:
         scheme: {{ .Values.configuration.sbi.scheme }}
         registerIPv4: {{ .Values.configuration.sbi.registerIPv4 }}         # Can also be a kubernetes service IP or domain name.

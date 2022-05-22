@@ -71,6 +71,9 @@ spec:
             - containerPort: {{ .Values.service.port }}
               name: f5gc-amf
               protocol: TCP
+            - name: f5gc-amf-n2
+              containerPort: 38412
+              protocol: SCTP
 {{- if .Values.tcpdump.image }}
         - name: tcpdump
           image: {{ .Values.tcpdump.image }}

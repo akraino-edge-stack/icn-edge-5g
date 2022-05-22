@@ -11,6 +11,10 @@ slice1_ns="slice-b"
 serviceType="LoadBalancer"
 Domain="f5gnetslice.com"
 PDNS_URL="http://192.168.10.50"
+
+#N2_NET="provider"
+N2_NETNAME="sctpnetwork"
+N2_AMFIP="172.16.24.3"
 ovnInterface="ens4"
 
 externalAppServerIP="192.168.100.100"

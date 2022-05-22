@@ -107,7 +107,9 @@ metadata :
 spec:
   intent:
     genericPlacementIntent: {{ $slice.compAppName }}-placement-intent
+{{- if $slice.ovnIntent }}    
     ovnaction: {{ $slice.compAppName }}_ovnaction_intent
+{{- end }}
     gac: generick8s_intent
 
 ---
@@ -152,6 +154,7 @@ spec:
       clusterLabel: {{ $slice.dPlane.clusterLabel }}
 
 {{- end }}
+{{- if $slice.ovnIntent }}
 ---
 #creating network intents
 version: emco/v2
@@ -184,6 +187,7 @@ spec:
   defaultGateway: "{{ $ovn.defaultGateway }}"
   ipAddress: {{ $ovn.ipAddress }}
 
+{{- end }}
 {{- end }}
 ---
 #create the generic action intent
@@ -232,7 +236,7 @@ spec:
       "op": "add",
       "path": "/metadata/annotations",
       "value": {
-         "external-dns.alpha.kubernetes.io/hostname": "{{ $app.name }}.{{ $slice.namespace }}.f5gnetslice.com"
+         "external-dns.alpha.kubernetes.io/hostname": "{{ $app.name }}.{{ $slice.namespace }}.{{ $.CNFDomain }}"
        }
     }
   ]
@@ -279,7 +283,7 @@ spec:
       "op": "add",
       "path": "/metadata/annotations",
       "value": {
-         "external-dns.alpha.kubernetes.io/hostname": "{{ $app.name }}.{{ $slice.namespace }}.f5gnetslice.com"
+         "external-dns.alpha.kubernetes.io/hostname": "{{ $app.name }}.{{ $slice.namespace }}.{{ $.CNFDomain }}"
        }
     }
   ]

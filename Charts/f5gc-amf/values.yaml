@@ -79,4 +79,5 @@ tolerations: []
 
 affinity: {}
 
+ngapIPs: []
 helmInstallOvn: false

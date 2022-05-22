@@ -222,6 +222,8 @@ ciphering:
 ```
 Note: Modify the slice configuration as required. It should match with the values used to create subscribers in the Free5gc database (in the deployment step above).
 
+Note: The UERANSIM can be connected to the AMF and UPF using a separate VLAN proivder networks or using the (kubernetes CNI) service (loadbalance or nodeport) networks. The option is provided as a configuration in the common-config and slice specific configuration files, which the user need to provide properly. 
+
 - The above steps will establish the PDU sessions which finally results in the creation of uesimtun interfaces.
 ```
 uesimtun0: flags=4305<UP,POINTOPOINT,RUNNING,NOARP,MULTICAST>  mtu 1350
@@ -273,6 +275,7 @@ Here are the steps to uninstall the slices and the software components
     * Link: sdewan(https://github.com/akraino-edge-stack/icn-sdwan)
 - Most of the parameters of the NFs, Applications and the slice (namespace etc.,) can be modified in the shell scripts only, as the emcoctl scripts are made more generic.
 - Modify the script to point to the target clusters' kubeconfig files.
+- Modify the configuration files and options properly as per the requirements.
 
 ***Links:***
 

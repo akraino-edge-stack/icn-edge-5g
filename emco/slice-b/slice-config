@@ -2,7 +2,12 @@
 slice_ns="slice-b"
 #serviceType="LoadBalancer"
 
-upfN3=172.16.34.4
+upfNet=provider
+upfNetName=gtpunetwork
+upfN3IP=172.16.34.4
+GnodeBIP=172.16.34.2 #192.168.20.151
+
+
 ueSubNet=172.16.2.0/24
 nssf_sst0="2"
 nssf_sd0="010203"

@@ -160,7 +160,7 @@ version: emco/v2
 resourceContext:
   anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources
 metadata:
-  name: resource-{{ $app.name }}-{{ $gac.resource.kind }}
+  name: resource-{{ $gac.resource.name }}-{{ $gac.resource.kind }}
 spec:
   app: {{ $app.name }}
   newObject: "{{ $gac.new }}"
@@ -179,9 +179,9 @@ file:
 #create the generic action intents customizations
 version: emco/v2
 resourceContext:
-  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources/resource-{{ $app.name }}-{{ $gac.resource.kind }}/customizations
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $slice.compAppName }}/{{ $slice.compAppVer }}/deployment-intent-groups/{{ $slice.depIntGrpName }}/generic-k8s-intents/generick8s_intent/resources/resource-{{ $gac.resource.name }}-{{ $gac.resource.kind }}/customizations
 metadata :
-  name: {{ $app.name }}-{{ $gac.resource.kind }}-customization
+  name: {{ $gac.resource.name }}-{{ $gac.resource.kind }}-customization
 spec:
   clusterSpecific: "{{ $gac.clusterSpecific }}"
   clusterInfo:
